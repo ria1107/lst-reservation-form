@@ -122,12 +122,10 @@
 
     <form id="reserveForm">
       <div class="field">
-        <label>ご希望の開催日 <span class="required">必須</span></label>
-        <input type="date" name="date" required>
-      </div>
-      <div class="field">
-        <label>ご希望の時間枠 <span class="required">必須</span></label>
-        <input type="text" name="slot" placeholder="例: 10:00〜12:00" required>
+        <label>ご希望の日時 <span class="required">必須</span></label>
+        <select name="dateSlot" id="dateSlotSelect" required disabled>
+          <option value="">空き枠を読み込み中...</option>
+        </select>
       </div>
       <div class="field">
         <label>お名前 <span class="required">必須</span></label>
@@ -180,6 +178,42 @@
   const resultBox = document.getElementById('result');
   const errorBox = document.getElementById('error');
   const submitBtn = document.getElementById('submitBtn');
+  const dateSlotSelect = document.getElementById('dateSlotSelect');
+
+  // ページを開いたら、スプレッドシート上の「空き枠」一覧を取得して選択肢に反映する
+  (async () => {
+    try {
+      const res = await fetch(GAS_WEB_APP_URL, { method: 'GET' });
+      const json = await res.json();
+      if (!json.ok) throw new Error(json.error || '空き枠の取得に失敗しました');
+
+      dateSlotSelect.innerHTML = '';
+
+      if (!json.slots || json.slots.length === 0) {
+        dateSlotSelect.innerHTML = '<option value="">現在空いている枠がありません</option>';
+        return;
+      }
+
+      // 開催日ごとにグループ化して <optgroup> にする
+      const byDate = {};
+      json.slots.forEach(s => {
+        if (!byDate[s.date]) byDate[s.date] = [];
+        byDate[s.date].push(s.slot);
+      });
+
+      dateSlotSelect.innerHTML = '<option value="">選択してください</option>' +
+        Object.keys(byDate).map(date => {
+          const options = byDate[date].map(slot =>
+            `<option value="${date}|${slot}">${slot}</option>`
+          ).join('');
+          return `<optgroup label="${date}">${options}</optgroup>`;
+        }).join('');
+
+      dateSlotSelect.disabled = false;
+    } catch (err) {
+      dateSlotSelect.innerHTML = '<option value="">空き枠を読み込めませんでした。再読み込みしてください</option>';
+    }
+  })();
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -189,6 +223,16 @@
     const data = Object.fromEntries(new FormData(form).entries());
 
     if (data.honeypot) return; // スパムボット対策(人間には見えない項目に入力があれば無視)
+
+    if (!data.dateSlot) {
+      errorBox.textContent = 'ご希望の日時を選択してください';
+      errorBox.style.display = 'block';
+      return;
+    }
+    const [date, slot] = data.dateSlot.split('|');
+    data.date = date;
+    data.slot = slot;
+    delete data.dateSlot;
 
     submitBtn.disabled = true;
     submitBtn.textContent = '送信中...';
