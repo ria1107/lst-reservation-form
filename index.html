@@ -387,27 +387,38 @@
       overflow: hidden;
     }
 
+    /* 左右がふわっと透けて消えるマスク(動く帯の「外枠」にかける。中身は動くがマスクは固定) */
+    .marquee-mask {
+      width: 100%;
+      overflow: hidden;
+      mask: linear-gradient(90deg, transparent 0%, black 10%, black 90%, transparent 100%);
+      -webkit-mask: linear-gradient(90deg, transparent 0%, black 10%, black 90%, transparent 100%);
+    }
+
     .marquee {
       display: flex;
+      gap: 24px;
       width: max-content;
-      animation: marquee 46s linear infinite;
+      animation: marquee 40s linear infinite;
     }
 
     .marquee:hover { animation-play-state: paused; }
 
     .marquee img {
-      height: 420px;
-      width: auto;
-      margin-right: 22px;
-      border-radius: 2px;
+      flex-shrink: 0;
+      width: 280px;
+      height: 280px;
+      object-fit: cover;
+      border-radius: 12px;
       border: 1px solid rgba(201, 169, 89, 0.18);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
       filter: saturate(0.85) brightness(0.92);
-      transition: filter 0.6s ease, transform 0.6s ease;
+      transition: filter 0.35s ease, transform 0.35s ease;
     }
 
     .marquee img:hover {
-      filter: saturate(1) brightness(1.02);
-      transform: translateY(-6px);
+      filter: saturate(1.05) brightness(1.1);
+      transform: scale(1.05);
     }
 
     @keyframes marquee {
@@ -589,7 +600,7 @@
       .cards { grid-template-columns: 1fr; max-width: 420px; }
       .flow-steps { grid-template-columns: 1fr; gap: 44px; }
       .flow-steps::before { display: none; }
-      .marquee img { height: 300px; }
+      .marquee img { width: 200px; height: 200px; }
       .hero-img { background-position: 62% 20%; }
     }
 
@@ -686,6 +697,7 @@
       <h2>撮影イメージ</h2>
       <div class="rule"></div>
     </div>
+    <div class="marquee-mask">
     <div class="marquee" aria-label="撮影写真ギャラリー">
       <img src="img/model-1.jpg" alt="撮影例">
       <img src="img/model-2.jpg" alt="撮影例">
@@ -697,6 +709,7 @@
       <img src="img/model-3.jpg" alt="" aria-hidden="true">
       <img src="img/model-4.jpg" alt="" aria-hidden="true">
       <img src="img/model-5.jpg" alt="" aria-hidden="true">
+    </div>
     </div>
     <p class="gallery-note">実際の撮影会でお撮りした写真です</p>
   </section>
