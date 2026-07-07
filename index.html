@@ -1,269 +1,366 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>プロフィール撮影会 ご予約フォーム | LST</title>
-<style>
-  :root {
-    --bg: #faf9f6;
-    --fg: #1a1a1a;
-    --muted: #6b6b6b;
-    --accent: #b08d57;
-    --card: #ffffff;
-    --border: #e3ddd2;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #14120f;
-      --fg: #f2efe9;
-      --muted: #a89f8f;
-      --accent: #d4af7a;
-      --card: #1e1b17;
-      --border: #332e26;
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>撮影会予約フォーム | Leading Style Tokyo</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;500;600;700&family=Cormorant+Garamond:wght@400;500;600&display=swap');
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: "Noto Serif JP", "Hiragino Mincho ProN", serif;
+      padding: 0;
+      margin: 0;
+      color: #e8e8e8;
+      background: linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
+      min-height: 100vh;
+      overflow-x: hidden;
     }
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--fg);
-    font-family: -apple-system, "Hiragino Sans", "Yu Gothic", sans-serif;
-    line-height: 1.7;
-  }
-  .wrap {
-    max-width: 560px;
-    margin: 0 auto;
-    padding: 40px 20px 80px;
-  }
-  header {
-    text-align: center;
-    margin-bottom: 32px;
-  }
-  header .eyebrow {
-    letter-spacing: 0.15em;
-    font-size: 12px;
-    color: var(--accent);
-    text-transform: uppercase;
-  }
-  header h1 {
-    font-size: 22px;
-    margin: 8px 0 0;
-  }
-  form {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 28px;
-  }
-  .field {
-    margin-bottom: 20px;
-  }
-  label {
-    display: block;
-    font-size: 14px;
-    margin-bottom: 6px;
-  }
-  label .required {
-    color: #c0392b;
-    margin-left: 4px;
-    font-size: 12px;
-  }
-  input, select, textarea {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: transparent;
-    color: var(--fg);
-    font-size: 15px;
-    font-family: inherit;
-  }
-  textarea { resize: vertical; min-height: 70px; }
-  button {
-    width: 100%;
-    padding: 14px;
-    border: none;
-    border-radius: 8px;
-    background: var(--accent);
-    color: #1a1a1a;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    margin-top: 8px;
-  }
-  button:disabled { opacity: 0.6; cursor: default; }
-  #result {
-    margin-top: 24px;
-    padding: 20px;
-    border-radius: 12px;
-    border: 1px solid var(--border);
-    background: var(--card);
-    display: none;
-  }
-  #result a {
-    color: var(--accent);
-    font-weight: 600;
-  }
-  #error {
-    margin-top: 16px;
-    color: #c0392b;
-    font-size: 14px;
-    display: none;
-  }
-</style>
+
+    .container {
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 40px 20px;
+      width: 100%;
+    }
+
+    h2 {
+      font-family: "Cormorant Garamond", "Noto Serif JP", serif;
+      font-size: 1.6em;
+      font-weight: 500;
+      letter-spacing: 0.15em;
+      text-align: center;
+      color: #c9a959;
+      margin-bottom: 10px;
+      text-shadow: 0 0 30px rgba(201, 169, 89, 0.3);
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 0.85em;
+      color: #888;
+      letter-spacing: 0.1em;
+      margin-bottom: 35px;
+      border-bottom: 1px solid rgba(201, 169, 89, 0.3);
+      padding-bottom: 25px;
+    }
+
+    .section {
+      background: linear-gradient(145deg, rgba(30, 30, 30, 0.9), rgba(20, 20, 20, 0.95));
+      padding: 25px;
+      border-radius: 2px;
+      border: 1px solid rgba(201, 169, 89, 0.25);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 15px;
+      font-weight: 500;
+      font-size: 0.95em;
+      color: #c9a959;
+      letter-spacing: 0.08em;
+    }
+
+    .required-badge {
+      display: inline-block;
+      background: linear-gradient(145deg, #8b0000, #a52a2a);
+      color: #fff;
+      font-size: 0.7em;
+      padding: 2px 8px;
+      border-radius: 2px;
+      margin-left: 8px;
+      vertical-align: middle;
+      letter-spacing: 0.05em;
+    }
+
+    .input-group { margin-bottom: 20px; }
+    .input-label { display: block; font-size: 0.85em; color: #aaa; margin-bottom: 8px; letter-spacing: 0.05em; }
+
+    select, input, textarea {
+      width: 100%; padding: 14px 16px; border: 1px solid rgba(201, 169, 89, 0.3);
+      border-radius: 2px; font-size: 15px; font-family: "Noto Serif JP", serif;
+      background: rgba(10, 10, 10, 0.8); color: #e8e8e8; transition: all 0.3s ease;
+    }
+
+    select:focus, input:focus, textarea:focus {
+      outline: none; border-color: #c9a959; box-shadow: 0 0 20px rgba(201, 169, 89, 0.15);
+    }
+
+    .gender-container { display: flex; gap: 20px; padding: 5px 0; }
+    .gender-item { display: flex; align-items: center; cursor: pointer; color: #ccc; font-size: 0.9em; }
+    .gender-item input[type="radio"] { width: auto; margin-right: 8px; cursor: pointer; accent-color: #c9a959; }
+
+    .input-error { border-color: #dc3545 !important; }
+    .error-message { color: #ff6b6b; font-size: 0.8em; margin-top: 6px; display: none; }
+    .error-message.show { display: block; }
+
+    .time-grid { display: grid; gap: 10px; margin-top: 15px; grid-template-columns: repeat(2, 1fr); }
+
+    .time-btn {
+      padding: 14px 8px; border: 1px solid rgba(201, 169, 89, 0.4);
+      background: linear-gradient(145deg, rgba(25, 25, 25, 0.9), rgba(15, 15, 15, 0.95));
+      color: #c9a959; cursor: pointer; border-radius: 2px; text-align: center;
+      font-size: 0.9em; font-family: "Noto Serif JP", serif; transition: all 0.3s ease;
+    }
+
+    .time-btn.selected {
+      background: linear-gradient(145deg, #c9a959, #a8893d) !important; color: #0a0a0a !important;
+      font-weight: 600; border-color: #c9a959 !important;
+    }
+
+    #soldoutMsg {
+      color: #c9a959; padding: 20px; display: none; text-align: center;
+      border: 1px solid rgba(201, 169, 89, 0.4); background: rgba(201, 169, 89, 0.05);
+    }
+
+    .submit-btn {
+      width: 100%; padding: 18px; background: linear-gradient(145deg, #c9a959, #a8893d);
+      color: #0a0a0a; border: none; border-radius: 2px; font-size: 1em; font-weight: 600;
+      cursor: pointer; transition: all 0.3s ease; margin-top: 10px;
+    }
+
+    .submit-btn:disabled { background: #444; color: #666; }
+
+    #completeView {
+      display: none; text-align: center; padding: 50px 30px;
+      background: rgba(30, 30, 30, 0.95); border-radius: 2px;
+      border: 1px solid rgba(201, 169, 89, 0.3); margin-top: 40px;
+    }
+
+    .complete-icon { font-size: 60px; color: #c9a959; margin-bottom: 25px; }
+    .brand-header { text-align: center; padding: 30px 0 20px; }
+    .brand-name { font-family: "Cormorant Garamond", serif; font-size: 1.8em; color: #c9a959; letter-spacing: 0.25em; }
+
+    .payment-link {
+      display: inline-block; margin-top: 25px; padding: 14px 28px;
+      background: linear-gradient(145deg, #c9a959, #a8893d); color: #0a0a0a;
+      text-decoration: none; border-radius: 2px; font-weight: 600; letter-spacing: 0.05em;
+    }
+
+    #loadError {
+      display: none; text-align: center; color: #ff6b6b; padding: 30px;
+      border: 1px solid rgba(220, 53, 69, 0.4); background: rgba(220, 53, 69, 0.05);
+    }
+  </style>
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <div class="eyebrow">Leading Style Tokyo</div>
-      <h1>プロフィール撮影会 ご予約</h1>
-    </header>
 
-    <form id="reserveForm">
-      <div class="field">
-        <label>ご希望の日時 <span class="required">必須</span></label>
-        <select name="dateSlot" id="dateSlotSelect" required disabled>
-          <option value="">空き枠を読み込み中...</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>お名前 <span class="required">必須</span></label>
-        <input type="text" name="name" required>
-      </div>
-      <div class="field">
-        <label>会社名(個人の方は空欄でOK)</label>
-        <input type="text" name="company">
-      </div>
-      <div class="field">
-        <label>性別</label>
-        <select name="gender">
-          <option value="">選択しない</option>
-          <option value="女性">女性</option>
-          <option value="男性">男性</option>
-          <option value="その他">その他</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>メールアドレス <span class="required">必須</span></label>
-        <input type="email" name="email" required>
-      </div>
-      <div class="field">
-        <label>電話番号</label>
-        <input type="tel" name="tel">
-      </div>
-      <div class="field">
-        <label>備考</label>
-        <textarea name="note"></textarea>
+  <div class="container">
+    <div class="brand-header">
+      <div class="brand-name">LEADING STYLE TOKYO</div>
+    </div>
+
+    <div id="completeView">
+      <div class="complete-icon">✓</div>
+      <h2>ご予約ありがとうございます</h2>
+      <div class="complete-text">当日はお気をつけてお越しください。<br>当日お会いできること楽しみにしております。</div>
+      <div class="contact-info">ご不明な点は <strong>nishimoto@f-3.jp</strong> までご連絡ください</div>
+      <div id="paymentArea"></div>
+    </div>
+
+    <div id="loading">情報を読み込み中...</div>
+    <div id="loadError">空き状況の読み込みに失敗しました。時間をおいて再読み込みしてください。</div>
+
+    <div id="mainForm" style="display:none;">
+      <h2>撮影会予約フォーム</h2>
+      <div class="subtitle">RESERVATION FORM</div>
+
+      <div class="section">
+        <label>1. 日付を選択 <span class="required-badge">必須</span></label>
+        <select id="dateSelect" onchange="loadTimes()"></select>
       </div>
 
-      <!-- スパム対策(見えない項目。人間は入力しない) -->
-      <div style="position:absolute; left:-9999px;">
-        <label>この項目は入力しないでください</label>
-        <input type="text" name="honeypot" tabindex="-1" autocomplete="off">
+      <div class="section">
+        <label>2. 希望の時間枠を選択 <span class="required-badge">必須</span></label>
+        <div id="soldoutMsg">満員御礼 ― SOLD OUT</div>
+        <div id="timeContainer" class="time-grid"></div>
+        <div id="timeErrorMsg" class="error-message">※時間枠を選択してください。</div>
       </div>
 
-      <button type="submit" id="submitBtn">予約を申し込む</button>
-    </form>
+      <form id="resForm" onsubmit="handleFormSubmit(this); return false;" novalidate>
+        <input type="hidden" name="row" id="selectedRow">
+        <div class="section">
+          <label>3. お客様情報</label>
 
-    <div id="result"></div>
-    <div id="error"></div>
+          <div class="input-group">
+            <span class="input-label">会社名</span>
+            <input type="text" name="company" placeholder="会社名">
+          </div>
+
+          <div class="input-group">
+            <span class="input-label">お名前 <span class="required-badge">必須</span></span>
+            <input type="text" name="name" id="name" placeholder="お名前">
+            <div class="error-message" id="nameError">お名前を入力してください。</div>
+          </div>
+
+          <div class="input-group">
+            <span class="input-label">性別 <span class="required-badge">必須</span></span>
+            <div class="gender-container">
+              <label class="gender-item"><input type="radio" name="gender" value="男性"> 男性</label>
+              <label class="gender-item"><input type="radio" name="gender" value="女性"> 女性</label>
+              <label class="gender-item"><input type="radio" name="gender" value="回答しない"> 回答しない</label>
+            </div>
+            <div class="error-message" id="genderError">性別を選択してください。</div>
+          </div>
+
+          <div class="input-group">
+            <span class="input-label">メールアドレス <span class="required-badge">必須</span></span>
+            <input type="email" name="email" id="email" placeholder="メールアドレス">
+            <div class="error-message" id="emailError">正しいメールアドレスを入力してください。</div>
+          </div>
+
+          <div class="input-group">
+            <span class="input-label">電話番号 <span class="required-badge">必須</span></span>
+            <input type="tel" name="tel" id="tel" placeholder="電話番号">
+            <div class="error-message" id="telError">電話番号を入力してください。</div>
+          </div>
+
+          <div class="input-group">
+            <span class="input-label">ご質問など（任意）</span>
+            <textarea name="question" rows="3" placeholder="ご質問など"></textarea>
+          </div>
+
+          <!-- スパム対策(見えない項目。人間は入力しない) -->
+          <div style="position:absolute; left:-9999px;">
+            <label>この項目は入力しないでください</label>
+            <input type="text" name="honeypot" tabindex="-1" autocomplete="off">
+          </div>
+        </div>
+        <button type="submit" class="submit-btn" id="sBtn">この内容で予約を確定する</button>
+      </form>
+    </div>
   </div>
 
 <script>
-  // GASでWebアプリとして公開したURLに差し替えてください
-  const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/【ここにデプロイIDを入れる】/exec';
+  // GASでWebアプリとしてデプロイしたURL
+  const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwaFVhsvOTZk6b8nH9ikNyoFJyqOuIuLG1eF8KkjgSvZgoD0uUzet0hzfJZfdZ3Pk0F/exec';
 
-  const form = document.getElementById('reserveForm');
-  const resultBox = document.getElementById('result');
-  const errorBox = document.getElementById('error');
-  const submitBtn = document.getElementById('submitBtn');
-  const dateSlotSelect = document.getElementById('dateSlotSelect');
+  let allData = {};
 
-  // ページを開いたら、スプレッドシート上の「空き枠」一覧を取得して選択肢に反映する
-  (async () => {
-    try {
-      const res = await fetch(GAS_WEB_APP_URL, { method: 'GET' });
-      const json = await res.json();
-      if (!json.ok) throw new Error(json.error || '空き枠の取得に失敗しました');
+  window.onload = () => {
+    fetch(GAS_WEB_APP_URL)
+      .then(r => r.json())
+      .then(json => {
+        if (!json.ok) throw new Error(json.error || '読み込みに失敗しました');
+        allData = json.slots;
 
-      dateSlotSelect.innerHTML = '';
+        const select = document.getElementById('dateSelect');
+        const sortedDates = Object.keys(allData).sort((a, b) => new Date(a) - new Date(b));
+        if (sortedDates.length === 0) {
+          document.getElementById('loading').innerText = "予約可能な日程がありません。";
+          return;
+        }
 
-      if (!json.slots || json.slots.length === 0) {
-        dateSlotSelect.innerHTML = '<option value="">現在空いている枠がありません</option>';
-        return;
-      }
+        const today = new Date(); today.setHours(0, 0, 0, 0);
+        sortedDates.forEach(date => {
+          if (new Date(date) < today) return;
+          const info = allData[date];
+          const displayLabel = `${info.labelBase} （${info.availableCount === 0 ? '完売' : '空き' + info.availableCount + '枠'}）`;
+          select.add(new Option(displayLabel, date));
+        });
 
-      // 開催日ごとにグループ化して <optgroup> にする
-      const byDate = {};
-      json.slots.forEach(s => {
-        if (!byDate[s.date]) byDate[s.date] = [];
-        byDate[s.date].push(s.slot);
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('mainForm').style.display = 'block';
+        loadTimes();
+      })
+      .catch(() => {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('loadError').style.display = 'block';
       });
+  };
 
-      dateSlotSelect.innerHTML = '<option value="">選択してください</option>' +
-        Object.keys(byDate).map(date => {
-          const options = byDate[date].map(slot =>
-            `<option value="${date}|${slot}">${slot}</option>`
-          ).join('');
-          return `<optgroup label="${date}">${options}</optgroup>`;
-        }).join('');
+  function loadTimes() {
+    const date = document.getElementById('dateSelect').value;
+    const slots = allData[date].items;
+    const container = document.getElementById('timeContainer');
+    const msg = document.getElementById('soldoutMsg');
+    container.innerHTML = ''; msg.style.display = 'none';
+    document.getElementById('selectedRow').value = '';
+    document.getElementById('timeErrorMsg').classList.remove('show');
 
-      dateSlotSelect.disabled = false;
-    } catch (err) {
-      dateSlotSelect.innerHTML = '<option value="">空き枠を読み込めませんでした。再読み込みしてください</option>';
+    let availableCount = 0;
+    slots.forEach(slot => {
+      if (!slot.available) return;
+      availableCount++;
+      const btn = document.createElement('div');
+      btn.innerText = slot.time; btn.className = 'time-btn';
+      btn.onclick = () => {
+        document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        document.getElementById('selectedRow').value = slot.rowIndex;
+        document.getElementById('timeErrorMsg').classList.remove('show');
+      };
+      container.appendChild(btn);
+    });
+    if (availableCount === 0) msg.style.display = 'block';
+  }
+
+  function validateForm(form) {
+    let isValid = true;
+    const fields = ['name', 'email', 'tel'];
+    fields.forEach(f => {
+      const input = document.getElementById(f);
+      if (!input.value.trim() || (f === 'email' && !input.value.includes('@'))) {
+        input.classList.add('input-error');
+        document.getElementById(f + 'Error').classList.add('show');
+        isValid = false;
+      } else {
+        input.classList.remove('input-error');
+        document.getElementById(f + 'Error').classList.remove('show');
+      }
+    });
+
+    if (!document.getElementById('selectedRow').value) {
+      document.getElementById('timeErrorMsg').classList.add('show');
+      isValid = false;
     }
-  })();
 
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    errorBox.style.display = 'none';
-    resultBox.style.display = 'none';
+    if (!form.gender.value) {
+      document.getElementById('genderError').classList.add('show');
+      isValid = false;
+    } else {
+      document.getElementById('genderError').classList.remove('show');
+    }
+
+    return isValid;
+  }
+
+  function handleFormSubmit(form) {
+    if (!validateForm(form)) return;
+    const sBtn = document.getElementById('sBtn');
+    sBtn.disabled = true; sBtn.innerText = "送信中...";
 
     const data = Object.fromEntries(new FormData(form).entries());
+    if (data.honeypot) return; // スパムボット対策
 
-    if (data.honeypot) return; // スパムボット対策(人間には見えない項目に入力があれば無視)
+    // text/plain で送ることでブラウザのCORSプリフライトを回避する(GAS Web Appの定番の書き方)
+    fetch(GAS_WEB_APP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(data),
+    })
+      .then(r => r.json())
+      .then(json => {
+        if (!json.ok) throw new Error(json.error || '送信に失敗しました');
 
-    if (!data.dateSlot) {
-      errorBox.textContent = 'ご希望の日時を選択してください';
-      errorBox.style.display = 'block';
-      return;
-    }
-    const [date, slot] = data.dateSlot.split('|');
-    data.date = date;
-    data.slot = slot;
-    delete data.dateSlot;
-
-    submitBtn.disabled = true;
-    submitBtn.textContent = '送信中...';
-
-    try {
-      // text/plain で送ることでブラウザのCORSプリフライトを回避する(GAS Web Appの定番の書き方)
-      const res = await fetch(GAS_WEB_APP_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(data),
-      });
-      const json = await res.json();
-
-      if (json.ok) {
-        let html = `<strong>ご予約ありがとうございます。</strong><br>確認メールをお送りしましたのでご確認ください。`;
         if (json.paymentUrl) {
-          html += `<br><br><a href="${json.paymentUrl}" target="_blank" rel="noopener">お支払いはこちらから →</a>`;
+          document.getElementById('paymentArea').innerHTML =
+            `<a class="payment-link" href="${json.paymentUrl}" target="_blank" rel="noopener">お支払いはこちらから →</a>`;
         }
-        resultBox.innerHTML = html;
-        resultBox.style.display = 'block';
-        form.style.display = 'none';
-      } else {
-        throw new Error(json.error || '送信に失敗しました');
-      }
-    } catch (err) {
-      errorBox.textContent = '送信できませんでした。お手数ですが時間をおいて再度お試しください。(' + err.message + ')';
-      errorBox.style.display = 'block';
-      submitBtn.disabled = false;
-      submitBtn.textContent = '予約を申し込む';
-    }
-  });
+        document.getElementById('mainForm').style.display = 'none';
+        document.getElementById('completeView').style.display = 'block';
+        window.scrollTo(0, 0);
+      })
+      .catch(err => {
+        alert("エラー: " + err.message);
+        sBtn.disabled = false; sBtn.innerText = "この内容で予約を確定する";
+      });
+  }
 </script>
 </body>
 </html>
