@@ -512,6 +512,37 @@
     .gender-item { display: flex; align-items: center; cursor: pointer; color: #ccc; font-size: 0.9em; margin-bottom: 0; font-weight: 400; letter-spacing: 0; }
     .gender-item input[type="radio"] { width: auto; margin-right: 8px; cursor: pointer; accent-color: var(--gold); }
 
+    .radio-group { display: flex; gap: 20px; padding: 5px 0; flex-wrap: wrap; }
+    .radio-group.vertical { flex-direction: column; gap: 14px; }
+    .radio-item { display: flex; align-items: center; cursor: pointer; color: #ccc; font-size: 0.9em; font-weight: 400; letter-spacing: 0; line-height: 1.6; }
+    .radio-item input[type="radio"] { width: auto; margin-right: 10px; cursor: pointer; accent-color: var(--gold); flex-shrink: 0; }
+
+    .notice-text { margin-top: 14px; font-size: 0.8em; color: #999; font-weight: 300; letter-spacing: 0.03em; line-height: 1.8; }
+
+    .option-lead { font-size: 0.85em; color: #b9b9b9; font-weight: 300; line-height: 1.9; }
+    .option-list { list-style: none; margin-top: 14px; display: flex; flex-direction: column; gap: 10px; }
+    .option-list li { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; font-size: 0.85em; border-bottom: 1px dashed rgba(201,169,89,0.18); padding-bottom: 10px; }
+    .option-list li span small { color: #888; font-size: 0.85em; }
+    .option-list li strong { color: var(--gold); font-weight: 600; white-space: nowrap; }
+    .media-links { display: flex; gap: 20px; margin-top: 14px; }
+    .media-links a { color: var(--gold); font-size: 0.85em; letter-spacing: 0.05em; text-decoration: none; border-bottom: 1px solid var(--gold-dim); padding-bottom: 2px; }
+    .media-links a:hover { border-color: var(--gold); }
+
+    .cancel-notice {
+      font-size: 0.78em; color: #999; font-weight: 300; line-height: 2;
+      border: 1px solid rgba(201,169,89,0.2); background: rgba(201,169,89,0.04);
+      padding: 16px 18px; border-radius: 2px; margin-bottom: 20px; letter-spacing: 0.03em;
+    }
+
+    .bank-info {
+      text-align: left; margin-top: 22px; padding: 18px 20px;
+      border: 1px solid var(--gold-dim); border-radius: 2px; background: rgba(10,10,10,0.6);
+    }
+    .bank-info pre {
+      white-space: pre-wrap; font-family: "Noto Serif JP", serif;
+      font-size: 0.85em; color: #ddd; line-height: 2; margin-top: 10px;
+    }
+
     .input-error { border-color: #dc3545 !important; }
     .error-message { color: #ff6b6b; font-size: 0.8em; margin-top: 6px; display: none; }
     .error-message.show { display: block; }
@@ -794,6 +825,51 @@
               <input type="text" name="honeypot" tabindex="-1" autocomplete="off">
             </div>
           </div>
+
+          <div class="section">
+            <label>4. お支払い方法 <span class="required-badge">必須</span></label>
+            <div class="radio-group">
+              <label class="radio-item"><input type="radio" name="paymentMethod" value="銀行振込"> 銀行振込</label>
+              <label class="radio-item"><input type="radio" name="paymentMethod" value="クレジットカード払い"> クレジットカード払い</label>
+            </div>
+            <div class="error-message" id="paymentMethodError">お支払い方法を選択してください。</div>
+            <p class="notice-text">※お支払い期限は撮影日の前日までとさせていただきます。銀行振込・クレジットカードのいずれも、ご予約内容の確認メールに詳細を記載します。</p>
+          </div>
+
+          <div class="section option-info">
+            <label>5. オプションのご案内</label>
+            <p class="option-lead">以下は撮影後にご案内・お申込みいただけるオプションです。今回のご予約時に選ぶ必要はありません。</p>
+            <ul class="option-list">
+              <li><span>データ全て買取<small>(目瞑り・テストカットを除く)</small></span><strong>¥15,000</strong></li>
+              <li><span>データ追加(1枚につき)</span><strong>¥500</strong></li>
+            </ul>
+            <p class="option-lead" style="margin-top:22px;">Leading Style Tokyoでは、Instagram・公式サイトでお客様の写真をご紹介しています。</p>
+            <div class="media-links">
+              <a href="https://www.instagram.com/leadingstyle_tokyo?igsh=MTQ5bmVueWo5OTJsZA%3D%3D&utm_source=qr" target="_blank" rel="noopener">Instagram</a>
+              <a href="https://leadingstyle.jp/" target="_blank" rel="noopener">公式HP</a>
+            </div>
+            <ul class="option-list" style="margin-top:16px;">
+              <li><span>オウンドメディア掲載<small>(ヒアリングシート記入)</small></span><strong>¥22,000</strong></li>
+              <li><span>ライターによるヒアリング取材・記事作成</span><strong>¥44,000</strong></li>
+            </ul>
+          </div>
+
+          <div class="section">
+            <label>6. オウンドメディアへの掲載について <span class="required-badge">必須</span></label>
+            <div class="radio-group vertical">
+              <label class="radio-item"><input type="radio" name="ownedMedia" value="ヒアリングシート"> オウンドメディアに掲載する(ヒアリングシートに記入する)</label>
+              <label class="radio-item"><input type="radio" name="ownedMedia" value="ライターヒアリング"> オウンドメディアに掲載する(ライターのヒアリング取材を希望する)</label>
+              <label class="radio-item"><input type="radio" name="ownedMedia" value="当日相談"> 撮影当日に相談する</label>
+              <label class="radio-item"><input type="radio" name="ownedMedia" value="見送り"> 掲載は見送る</label>
+            </div>
+            <div class="error-message" id="ownedMediaError">いずれかを選択してください。</div>
+          </div>
+
+          <div class="cancel-notice">
+            ※ヘアメイクスタッフの手配の都合上、撮影日3日前からのキャンセルにはキャンセル料を申し受けます。あらかじめご了承ください。<br>
+            3日前:30%　2日前:50%　前日:100%
+          </div>
+
           <button type="submit" class="submit-btn" id="sBtn">この内容で予約を確定する</button>
         </form>
       </div>
@@ -919,6 +995,20 @@
       document.getElementById('genderError').classList.remove('show');
     }
 
+    if (!form.paymentMethod.value) {
+      document.getElementById('paymentMethodError').classList.add('show');
+      isValid = false;
+    } else {
+      document.getElementById('paymentMethodError').classList.remove('show');
+    }
+
+    if (!form.ownedMedia.value) {
+      document.getElementById('ownedMediaError').classList.add('show');
+      isValid = false;
+    } else {
+      document.getElementById('ownedMediaError').classList.remove('show');
+    }
+
     return isValid;
   }
 
@@ -940,9 +1030,16 @@
       .then(json => {
         if (!json.ok) throw new Error(json.error || '送信に失敗しました');
 
-        if (json.paymentUrl) {
+        if (json.paymentMethod === 'クレジットカード払い' && json.paymentUrl) {
           document.getElementById('paymentArea').innerHTML =
-            `<a class="payment-link" href="${json.paymentUrl}" target="_blank" rel="noopener">お支払いはこちらから →</a>`;
+            `<p class="notice-text">お支払い期限:撮影日の前日まで</p>
+             <a class="payment-link" href="${json.paymentUrl}" target="_blank" rel="noopener">お支払いはこちらから →</a>`;
+        } else if (json.paymentMethod === '銀行振込' && json.bankInfo) {
+          document.getElementById('paymentArea').innerHTML =
+            `<div class="bank-info">
+               <p class="notice-text" style="margin-top:0;">お支払い期限:撮影日の前日まで</p>
+               <pre>${json.bankInfo.replace(/</g, '&lt;')}</pre>
+             </div>`;
         }
         document.getElementById('mainForm').style.display = 'none';
         document.getElementById('completeView').style.display = 'block';
