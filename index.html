@@ -165,8 +165,8 @@
     .hero .en-brand {
       font-family: "Cormorant Garamond", serif;
       color: var(--gold);
-      font-size: clamp(0.85em, 2vw, 1em);
-      letter-spacing: 0.5em;
+      font-size: clamp(1.6em, 4.4vw, 2.7em);
+      letter-spacing: 0.15em;
       display: block;
       margin-bottom: 26px;
       opacity: 0;
@@ -266,7 +266,7 @@
     }
 
     .about-lead {
-      max-width: 640px;
+      max-width: 980px;
       margin: 0 auto 70px;
       text-align: center;
       font-weight: 300;
@@ -337,7 +337,7 @@
     }
 
     .flow-steps {
-      max-width: 760px;
+      max-width: 980px;
       margin: 0 auto;
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -458,7 +458,7 @@
     .options .option-lead,
     .options .option-list,
     .options .media-cards {
-      max-width: 560px;
+      max-width: 980px;
       margin-left: auto;
       margin-right: auto;
     }
@@ -697,8 +697,32 @@
     <a class="nav-cta" href="#reserve">ご予約</a>
   </nav>
 
+  <!-- ギャラリー -->
+  <section class="gallery" id="top">
+    <div class="section-head reveal">
+      <span class="en-label">Gallery</span>
+      <h2>撮影イメージ</h2>
+      <div class="rule"></div>
+    </div>
+    <div class="marquee-mask">
+    <div class="marquee" aria-label="撮影写真ギャラリー">
+      <img src="img/model-1.jpg" alt="撮影例">
+      <img src="img/model-2.jpg" alt="撮影例">
+      <img src="img/model-3.jpg" alt="撮影例">
+      <img src="img/model-4.jpg" alt="撮影例">
+      <img src="img/model-5.jpg" alt="撮影例">
+      <img src="img/model-1.jpg" alt="" aria-hidden="true">
+      <img src="img/model-2.jpg" alt="" aria-hidden="true">
+      <img src="img/model-3.jpg" alt="" aria-hidden="true">
+      <img src="img/model-4.jpg" alt="" aria-hidden="true">
+      <img src="img/model-5.jpg" alt="" aria-hidden="true">
+    </div>
+    </div>
+    <p class="gallery-note">実際の撮影会でお撮りした写真です</p>
+  </section>
+
   <!-- ヒーロー -->
-  <section class="hero" id="top">
+  <section class="hero">
     <div class="hero-img"></div>
     <div class="hero-inner">
       <span class="en-brand">LEADING STYLE TOKYO</span>
@@ -820,7 +844,11 @@
       <li><span>データ全て買取<small>(目瞑り・テストカットを除く)</small></span><strong>¥15,000</strong></li>
       <li><span>データ追加(1枚につき)</span><strong>¥500</strong></li>
     </ul>
-    <p class="option-lead reveal d2" style="margin-top:40px;">Leading Style Tokyoでは、Instagram・公式サイトでお客様の写真をご紹介しています。</p>
+    <ul class="option-list reveal d2" style="margin-top:16px;">
+      <li><span>オウンドメディア掲載<small>(ヒアリングシート記入)</small></span><strong>¥22,000</strong></li>
+      <li><span>ライターによるヒアリング取材・記事作成</span><strong>¥44,000</strong></li>
+    </ul>
+    <p class="option-lead reveal d3" style="margin-top:40px;">Leading Style Tokyoでは、Instagram・公式サイトでお客様の写真をご紹介しています。</p>
     <div class="media-cards reveal d3">
       <a class="media-card" href="https://leadingstyle.jp/" target="_blank" rel="noopener">
         <span class="media-icon">
@@ -848,34 +876,6 @@
         </span>
       </a>
     </div>
-    <ul class="option-list reveal d3" style="margin-top:16px;">
-      <li><span>オウンドメディア掲載<small>(ヒアリングシート記入)</small></span><strong>¥22,000</strong></li>
-      <li><span>ライターによるヒアリング取材・記事作成</span><strong>¥44,000</strong></li>
-    </ul>
-  </section>
-
-  <!-- ギャラリー -->
-  <section class="gallery">
-    <div class="section-head reveal">
-      <span class="en-label">Gallery</span>
-      <h2>撮影イメージ</h2>
-      <div class="rule"></div>
-    </div>
-    <div class="marquee-mask">
-    <div class="marquee" aria-label="撮影写真ギャラリー">
-      <img src="img/model-1.jpg" alt="撮影例">
-      <img src="img/model-2.jpg" alt="撮影例">
-      <img src="img/model-3.jpg" alt="撮影例">
-      <img src="img/model-4.jpg" alt="撮影例">
-      <img src="img/model-5.jpg" alt="撮影例">
-      <img src="img/model-1.jpg" alt="" aria-hidden="true">
-      <img src="img/model-2.jpg" alt="" aria-hidden="true">
-      <img src="img/model-3.jpg" alt="" aria-hidden="true">
-      <img src="img/model-4.jpg" alt="" aria-hidden="true">
-      <img src="img/model-5.jpg" alt="" aria-hidden="true">
-    </div>
-    </div>
-    <p class="gallery-note">実際の撮影会でお撮りした写真です</p>
   </section>
 
   <!-- 予約フォーム -->
