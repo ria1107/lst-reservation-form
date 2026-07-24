@@ -885,9 +885,8 @@
       <div id="completeView">
         <div class="complete-icon">✓</div>
         <h2 class="form-title">ご予約ありがとうございます</h2>
-        <div class="complete-text">当日はお気をつけてお越しください。<br>当日お会いできること楽しみにしております。</div>
+        <div class="complete-text">当日はお気をつけてお越しください。<br>当日お会いできること楽しみにしております。<br>お支払いは当日、会場にて承ります。</div>
         <div class="contact-info">ご不明な点は <strong>nishimoto@f-3.jp</strong> までご連絡ください</div>
-        <div id="paymentArea"></div>
       </div>
 
       <div id="loading">空き状況を読み込み中...</div>
@@ -960,17 +959,7 @@
           </div>
 
           <div class="section">
-            <label>4. お支払い方法 <span class="required-badge">必須</span></label>
-            <div class="radio-group">
-              <label class="radio-item"><input type="radio" name="paymentMethod" value="銀行振込"> 銀行振込</label>
-              <label class="radio-item"><input type="radio" name="paymentMethod" value="クレジットカード払い"> クレジットカード払い</label>
-            </div>
-            <div class="error-message" id="paymentMethodError">お支払い方法を選択してください。</div>
-            <p class="notice-text">※お支払い期限は撮影日の前日までとさせていただきます。銀行振込・クレジットカードのいずれも、ご予約内容の確認メールに詳細を記載します。</p>
-          </div>
-
-          <div class="section">
-            <label>5. オウンドメディアへの掲載について <span class="required-badge">必須</span></label>
+            <label>4. オウンドメディアへの掲載について <span class="required-badge">必須</span></label>
             <div class="radio-group vertical">
               <label class="radio-item"><input type="radio" name="ownedMedia" value="ヒアリングシート"> オウンドメディアに掲載する(ヒアリングシートに記入する) <span class="radio-price">¥22,000</span></label>
               <label class="radio-item"><input type="radio" name="ownedMedia" value="ライターヒアリング"> オウンドメディアに掲載する(ライターのヒアリング取材を希望する) <span class="radio-price">¥44,000</span></label>
@@ -978,6 +967,24 @@
               <label class="radio-item"><input type="radio" name="ownedMedia" value="見送り"> 掲載は見送る</label>
             </div>
             <div class="error-message" id="ownedMediaError">いずれかを選択してください。</div>
+          </div>
+
+          <div class="section">
+            <label>5. ご来店のきっかけ <span class="required-badge">必須</span></label>
+            <div class="radio-group vertical">
+              <label class="radio-item"><input type="radio" name="referralSource" value="Instagram"> Instagram</label>
+              <label class="radio-item"><input type="radio" name="referralSource" value="公式HP"> 公式HP</label>
+              <label class="radio-item"><input type="radio" name="referralSource" value="紹介"> 紹介</label>
+              <label class="radio-item"><input type="radio" name="referralSource" value="Google検索"> Google検索</label>
+              <label class="radio-item"><input type="radio" name="referralSource" value="その他"> その他</label>
+            </div>
+            <div class="error-message" id="referralSourceError">いずれかを選択してください。</div>
+
+            <div class="input-group" id="referrerNameGroup" style="display:none; margin-top:16px;">
+              <span class="input-label">どなた様のご紹介ですか? <span class="required-badge">必須</span></span>
+              <input type="text" name="referrerName" id="referrerName" placeholder="紹介者のお名前">
+              <div class="error-message" id="referrerNameError">紹介者のお名前を入力してください。</div>
+            </div>
           </div>
 
           <div class="cancel-notice">
@@ -1110,13 +1117,6 @@
       document.getElementById('genderError').classList.remove('show');
     }
 
-    if (!form.paymentMethod.value) {
-      document.getElementById('paymentMethodError').classList.add('show');
-      isValid = false;
-    } else {
-      document.getElementById('paymentMethodError').classList.remove('show');
-    }
-
     if (!form.ownedMedia.value) {
       document.getElementById('ownedMediaError').classList.add('show');
       isValid = false;
@@ -1124,8 +1124,34 @@
       document.getElementById('ownedMediaError').classList.remove('show');
     }
 
+    if (!form.referralSource.value) {
+      document.getElementById('referralSourceError').classList.add('show');
+      isValid = false;
+    } else {
+      document.getElementById('referralSourceError').classList.remove('show');
+    }
+
+    if (form.referralSource.value === '紹介') {
+      const referrerName = document.getElementById('referrerName');
+      if (!referrerName.value.trim()) {
+        referrerName.classList.add('input-error');
+        document.getElementById('referrerNameError').classList.add('show');
+        isValid = false;
+      } else {
+        referrerName.classList.remove('input-error');
+        document.getElementById('referrerNameError').classList.remove('show');
+      }
+    }
+
     return isValid;
   }
+
+  document.querySelectorAll('input[name="referralSource"]').forEach(el => {
+    el.addEventListener('change', () => {
+      const isReferral = document.querySelector('input[name="referralSource"]:checked')?.value === '紹介';
+      document.getElementById('referrerNameGroup').style.display = isReferral ? 'block' : 'none';
+    });
+  });
 
   function handleFormSubmit(form) {
     if (!validateForm(form)) return;
@@ -1145,17 +1171,6 @@
       .then(json => {
         if (!json.ok) throw new Error(json.error || '送信に失敗しました');
 
-        if (json.paymentMethod === 'クレジットカード払い' && json.paymentUrl) {
-          document.getElementById('paymentArea').innerHTML =
-            `<p class="notice-text">お支払い期限:撮影日の前日まで</p>
-             <a class="payment-link" href="${json.paymentUrl}" target="_blank" rel="noopener">お支払いはこちらから →</a>`;
-        } else if (json.paymentMethod === '銀行振込' && json.bankInfo) {
-          document.getElementById('paymentArea').innerHTML =
-            `<div class="bank-info">
-               <p class="notice-text" style="margin-top:0;">お支払い期限:撮影日の前日まで</p>
-               <pre>${json.bankInfo.replace(/</g, '&lt;')}</pre>
-             </div>`;
-        }
         document.getElementById('mainForm').style.display = 'none';
         document.getElementById('completeView').style.display = 'block';
         document.getElementById('completeView').scrollIntoView({ behavior: 'smooth', block: 'start' });
