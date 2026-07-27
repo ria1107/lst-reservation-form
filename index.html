@@ -202,26 +202,6 @@
 
     @keyframes linedraw { to { width: 220px; } }
 
-    .hero .hero-cta {
-      display: inline-block;
-      color: var(--ink);
-      background: linear-gradient(145deg, var(--gold), #a8893d);
-      padding: 16px 44px;
-      border-radius: 2px;
-      text-decoration: none;
-      font-weight: 600;
-      letter-spacing: 0.2em;
-      font-size: 0.95em;
-      opacity: 0;
-      animation: fadeup 1.2s ease 1.5s forwards;
-      transition: transform 0.35s ease, box-shadow 0.35s ease;
-    }
-
-    .hero .hero-cta:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 30px rgba(201, 169, 89, 0.25);
-    }
-
     @keyframes fadeup {
       from { opacity: 0; transform: translateY(22px); }
       to { opacity: 1; transform: none; }
@@ -238,6 +218,7 @@
       font-size: 0.72em;
       letter-spacing: 0.4em;
       text-transform: uppercase;
+      text-align: center;
       opacity: 0;
       animation: fadeup 1.2s ease 2s forwards;
     }
@@ -681,14 +662,12 @@
 
       .hero-inner { text-align: center; }
       .hero .hero-line { margin-left: auto; margin-right: auto; }
-      .hero .hero-cta { display: block; margin-left: auto; margin-right: auto; width: fit-content; }
-      .scroll-cue { left: 50%; text-align: center; }
     }
 
     /* 動きを控えたい設定の人には止める */
     @media (prefers-reduced-motion: reduce) {
       .hero-img, .marquee, .scroll-cue::after { animation: none !important; }
-      .hero .en-brand, .hero h1, .hero .hero-sub, .hero .hero-cta, .scroll-cue { animation: none !important; opacity: 1 !important; }
+      .hero .en-brand, .hero h1, .hero .hero-sub, .scroll-cue { animation: none !important; opacity: 1 !important; }
       .hero .hero-line { animation: none !important; width: 220px; }
       .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
       html { scroll-behavior: auto; }
@@ -710,7 +689,6 @@
       <h1>その一枚が、<br>あなたの名刺になる。</h1>
       <p class="hero-sub">経営者・ビジネスパーソンのための、ヘアメイク付きプロフィール撮影会。</p>
       <div class="hero-line"></div>
-      <a class="hero-cta" href="#reserve">ご予約はこちら</a>
     </div>
     <div class="scroll-cue">Scroll</div>
   </section>
