@@ -748,7 +748,7 @@
         </span>
         <span class="card-en">Price</span>
         <div class="big">¥33,000<small>(税込)</small></div>
-        <p>ヘアメイク・撮影・レタッチデータ10枚まで、すべて含んだ料金です。</p>
+        <p>ヘアメイク・撮影・レタッチデータ10枚まで、すべて含んだ料金です。<br>※ご予約後に事前決済(クレジットカード等)をお願いしております。</p>
       </div>
       <div class="card reveal d2">
         <span class="card-icon">
@@ -832,7 +832,7 @@
       <h2>オプションのご案内</h2>
       <div class="rule"></div>
     </div>
-    <p class="option-lead reveal d1">以下は撮影後にご案内・お申込みいただけるオプションです。ご予約時に選んでいただく項目はありません。</p>
+    <p class="option-lead reveal d1">以下は撮影後にご案内・お申込みいただけるオプションです。ご予約時に選んでいただく項目はありません。オプション料金のお支払いは、撮影当日に会場にて承ります。</p>
     <ul class="option-list reveal d2">
       <li><span>データ全て買取<small>(目瞑り・テストカットを除く)</small></span><strong>¥15,000</strong></li>
       <li><span>データ追加(1枚につき)</span><strong>¥500</strong></li>
@@ -878,7 +878,9 @@
       <div id="completeView">
         <div class="complete-icon">✓</div>
         <h2 class="form-title">ご予約ありがとうございます</h2>
-        <div class="complete-text">当日はお気をつけてお越しください。<br>当日お会いできること楽しみにしております。<br>お支払いは当日、会場にて承ります。</div>
+        <div class="complete-text">ご予約を承りました。確認メールをお送りしましたのでご確認ください。<br><br>撮影費用 <strong>¥33,000(税込)</strong> は、事前のお支払いをお願いしております。<br>下のボタンからお支払いください(確認メールにも同じリンクを記載しています)。<br>追加データなどのオプション料金は、撮影当日に会場にて承ります。</div>
+        <a id="payLink" class="payment-link" href="#" target="_blank" rel="noopener" style="display:none;">撮影費用のお支払いへ進む</a>
+        <div id="payLinkFallback" class="complete-text" style="display:none; margin-top:20px;">お支払い方法は、担当より別途メールにてご案内いたします。</div>
         <div class="contact-info">ご不明な点は <strong>nishimoto@f-3.jp</strong> までご連絡ください</div>
       </div>
 
@@ -981,6 +983,7 @@
           </div>
 
           <div class="cancel-notice">
+            ※撮影費用 ¥33,000(税込)は事前決済です。予約確定後の画面と確認メールにて、お支払い用リンク(Square)をご案内します。追加データ等のオプション料金は撮影当日のお支払いです。<br><br>
             ※ヘアメイクスタッフの手配の都合上、撮影日3日前からのキャンセルにはキャンセル料を申し受けます。あらかじめご了承ください。<br>
             3日前:30%　2日前:50%　前日:100%
           </div>
@@ -1163,6 +1166,15 @@
       .then(r => r.json())
       .then(json => {
         if (!json.ok) throw new Error(json.error || '送信に失敗しました');
+
+        // Square事前決済リンク: 発行できていればボタン表示、なければ案内文に切り替え
+        if (json.paymentUrl) {
+          const payLink = document.getElementById('payLink');
+          payLink.href = json.paymentUrl;
+          payLink.style.display = 'inline-block';
+        } else {
+          document.getElementById('payLinkFallback').style.display = 'block';
+        }
 
         document.getElementById('mainForm').style.display = 'none';
         document.getElementById('completeView').style.display = 'block';
