@@ -54,6 +54,16 @@ npx wrangler pages deploy . --project-name=f3-lst-reservation --branch=main --co
 2. Notion「DB_アプリURL台帳」の更新
 3. 問題なければGitHub Pages側の停止(今回は未実施・指示があるまで着手しない)
 
+## 6. 【2026-09-18追記】独自ドメイン`lst.f-3.jp`を追加(D-024関連、開発課依頼)
+
+**このフォームはSquare本番決済が実際に動いている生きたシステムのため、今回は静的ファイルの配信設定(Custom domains)のみを変更し、注文APIへのテスト送信・送信ボタンの操作は一切行っていない。**
+
+Cloudflare Pages Custom Domains APIで`lst.f-3.jp`を追加(状態: `pending`、CNAME未設定待ち)。
+お名前.com側で`lst` → CNAME → `f3-lst-reservation.pages.dev` の追加が必要
+(手順は`会社基盤/products/印鑑販売_行政書士様向け/Cloudflare移行メモ.md`の【2026-09-18追記】3.を参照、同じ手順で6件まとめて設定する)。
+
+品質チェックは`curl -sI https://f3-lst-reservation.pages.dev/`でHTTP 200を確認するに留めた(表示確認のみ)。
+
 ## 参考
 
-同じ手法での移行実績: `会社基盤/products/印鑑販売_行政書士様向け/Cloudflare移行メモ.md`
+同じ手法での移行実績: `会社基盤/products/印鑑販売_行政書士様向け/Cloudflare移行メモ.md`(2026-09-18追記に今回のAPI操作の詳細・6フォーム分のCNAME一覧あり)
