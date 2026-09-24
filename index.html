@@ -1029,6 +1029,17 @@
 
   // ---------- 予約フォーム ----------
   window.addEventListener('DOMContentLoaded', () => {
+    // 紹介リンク(?ref=コード)からの遷移: 「ご来店のきっかけ」を自動で「紹介」にし、紹介者名欄にコードを入力しておく
+    const refCode = new URLSearchParams(window.location.search).get('ref');
+    if (refCode) {
+      const referralRadio = document.querySelector('input[name="referralSource"][value="紹介"]');
+      if (referralRadio) referralRadio.checked = true;
+      const referrerNameGroup = document.getElementById('referrerNameGroup');
+      if (referrerNameGroup) referrerNameGroup.style.display = 'block';
+      const referrerNameInput = document.getElementById('referrerName');
+      if (referrerNameInput) referrerNameInput.value = refCode;
+    }
+
     fetch(GAS_WEB_APP_URL)
       .then(r => r.json())
       .then(json => {
