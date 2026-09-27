@@ -457,6 +457,45 @@
     .options .option-lead { text-align: center; }
     .options .media-cards { justify-content: center; }
 
+    /* ---------- ご紹介特典 ---------- */
+    .referral {
+      padding: 100px 24px;
+      background: var(--ink);
+    }
+    .referral .referral-lead {
+      max-width: 760px; margin: 0 auto; text-align: center;
+      font-size: 0.9em; color: #b9b9b9; font-weight: 300; line-height: 1.9;
+    }
+    .referral-cards {
+      max-width: 980px; margin: 40px auto 0;
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
+    }
+    .referral-card {
+      border: 1px solid var(--gold-dim);
+      padding: 32px 22px; text-align: center;
+      background: linear-gradient(180deg, rgba(201,169,89,0.05), transparent);
+    }
+    .referral-card .referral-who {
+      display: block; font-size: 0.75em; letter-spacing: 0.2em; color: var(--gold); margin-bottom: 14px;
+    }
+    .referral-card strong {
+      display: block; font-family: "Noto Serif JP", serif; font-size: 1.25em; font-weight: 500;
+      color: var(--paper); line-height: 1.6; margin-bottom: 12px;
+    }
+    .referral-card strong em { font-style: normal; color: var(--gold); font-size: 1.3em; }
+    .referral-card p { font-size: 0.82em; color: #b9b9b9; font-weight: 300; line-height: 1.8; }
+    .referral-notes {
+      max-width: 760px; margin: 36px auto 0; padding: 0; list-style: none;
+      font-size: 0.78em; color: var(--muted); line-height: 1.9;
+    }
+    .referral-notes li { padding-left: 1.3em; text-indent: -1.3em; }
+    .referral-notes li::before { content: "※"; margin-right: 0.3em; }
+    .referral-hint { font-size: 0.8em; color: var(--gold); margin-top: 10px; line-height: 1.7; }
+    @media (max-width: 760px) {
+      .referral { padding: 80px 16px; }
+      .referral-cards { grid-template-columns: 1fr; }
+    }
+
     /* ---------- 予約フォーム(既存デザイン) ---------- */
     .reserve {
       padding: 110px 20px 80px;
@@ -871,6 +910,39 @@
     </div>
   </section>
 
+  <!-- ご紹介特典(2026-10-01〜) -->
+  <section class="referral" id="referral">
+    <div class="section-head reveal">
+      <span class="en-label">Referral</span>
+      <h2>ご紹介特典</h2>
+      <div class="rule"></div>
+    </div>
+    <p class="referral-lead reveal d1">2026年10月1日から、ご紹介特典をはじめました。<br>ご紹介くださった方にも、ご紹介でお越しの方にも、写真データをプラスしてお渡しします。</p>
+    <div class="referral-cards reveal d2">
+      <div class="referral-card">
+        <span class="referral-who">ご紹介くださった方へ</span>
+        <strong>「2枚追加チケット」<br>を<em>1枚</em>プレゼント</strong>
+        <p>ご紹介の方が撮影を終えるごとに1枚。<br>チケット1枚で、前回の撮影データから<br>レタッチ済みデータを2枚追加します。</p>
+      </div>
+      <div class="referral-card">
+        <span class="referral-who">チケットが5枚たまったら</span>
+        <strong>撮影1回<em>無料</em></strong>
+        <p>チケット5枚で、撮影1回分<br>(¥33,000)と交換できます。</p>
+      </div>
+      <div class="referral-card">
+        <span class="referral-who">ご紹介でお越しの方へ</span>
+        <strong>データ<em>+2枚</em><br>(10枚 → 12枚)</strong>
+        <p>撮影当日、通常の10枚に2枚追加して<br>お渡しします。</p>
+      </div>
+    </div>
+    <ul class="referral-notes reveal d3">
+      <li>ご予約フォームの「ご来店のきっかけ」で「紹介」を選び、ご紹介者のお名前をご入力ください。</li>
+      <li>ご紹介の方の撮影が完了した時点で、チケット1枚となります(ご予約のみ・キャンセルは対象外)。</li>
+      <li>チケットの有効期限は、最後にご紹介された方の撮影完了日から1年間です。期限内に撮影を完了してください。</li>
+      <li>使用したチケットはなくなります。2026年10月1日以降に撮影された方のご紹介が対象です。</li>
+    </ul>
+  </section>
+
   <!-- 予約フォーム -->
   <section class="reserve" id="reserve">
     <div class="container">
@@ -979,6 +1051,7 @@
               <span class="input-label">どなた様のご紹介ですか? <span class="required-badge">必須</span></span>
               <input type="text" name="referrerName" id="referrerName" placeholder="紹介者のお名前">
               <div class="error-message" id="referrerNameError">紹介者のお名前を入力してください。</div>
+              <div class="referral-hint">ご紹介でお越しの方は、撮影当日にデータを2枚追加(10枚 → 12枚)してお渡しします。</div>
             </div>
           </div>
 
