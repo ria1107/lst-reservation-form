@@ -617,6 +617,15 @@
       font-size: 0.85em; color: #ddd; line-height: 2; margin-top: 10px;
     }
 
+    /* クーポン(D-060) */
+    .coupon-input { text-transform: uppercase; letter-spacing: 0.12em; }
+    .coupon-input::placeholder { text-transform: none; letter-spacing: 0.03em; }
+    .coupon-result {
+      margin-top: 18px; padding: 12px 16px; border: 1px solid var(--gold-dim);
+      background: rgba(201,169,89,0.06); color: var(--gold); border-radius: 2px; line-height: 1.8;
+    }
+    .coupon-result.is-invalid { color: #cfcfcf; border-color: rgba(255,255,255,0.18); background: rgba(255,255,255,0.03); }
+
     .input-error { border-color: #dc3545 !important; }
     .error-message { color: #ff6b6b; font-size: 0.8em; margin-top: 6px; display: none; }
     .error-message.show { display: block; }
@@ -950,7 +959,8 @@
       <div id="completeView">
         <div class="complete-icon">✓</div>
         <h2 class="form-title">ご予約ありがとうございます</h2>
-        <div class="complete-text">ご予約を承りました。確認メールをお送りしましたのでご確認ください。<br><br>撮影費用 <strong>¥33,000(税込)</strong> は、事前のお支払いをお願いしております。<br>下のボタンからお支払いください(確認メールにも同じリンクを記載しています)。<br>追加データなどのオプション料金は、撮影当日に会場にて承ります。</div>
+        <div class="complete-text">ご予約を承りました。確認メールをお送りしましたのでご確認ください。<br><br>撮影費用 <strong id="completeAmount">¥33,000(税込)</strong> は、事前のお支払いをお願いしております。<br>下のボタンからお支払いください(確認メールにも同じリンクを記載しています)。<br>追加データなどのオプション料金は、撮影当日に会場にて承ります。</div>
+        <div id="couponResult" class="complete-text coupon-result" style="display:none;"></div>
         <a id="payLink" class="payment-link" href="#" target="_blank" rel="noopener" style="display:none;">撮影費用のお支払いへ進む</a>
         <div id="payLinkFallback" class="complete-text" style="display:none; margin-top:20px;">お支払い方法は、担当より別途メールにてご案内いたします。</div>
         <div class="contact-info">ご不明な点は <strong>nishimoto@f-3.jp</strong> までご連絡ください</div>
@@ -1055,8 +1065,18 @@
             </div>
           </div>
 
+          <!-- 割引クーポンコード(D-060)。コードの判定は必ずGAS側で行う(ここに有効なコードは書かない) -->
+          <div class="section">
+            <label for="couponCode">6. クーポンコード(お持ちの方のみ)</label>
+            <div class="input-group">
+              <input type="text" name="couponCode" id="couponCode" class="coupon-input" placeholder="お持ちの方はご入力ください" maxlength="30" autocomplete="off" autocapitalize="characters" spellcheck="false" inputmode="latin">
+              <div class="error-message" id="couponCodeError">クーポンコードは英数字でご入力ください(お持ちでない方は空欄のままで大丈夫です)。</div>
+              <div class="notice-text">ご入力のクーポンは予約確定後に確認し、適用後の金額を完了画面と確認メールでご案内します。</div>
+            </div>
+          </div>
+
           <div class="cancel-notice">
-            ※撮影費用 ¥33,000(税込)は事前決済です。予約確定後の画面と確認メールにて、お支払い用リンク(Square)をご案内します。追加データ等のオプション料金は撮影当日のお支払いです。<br><br>
+            ※撮影費用 ¥33,000(税込)は事前決済です(クーポンご利用の場合は割引後の金額となります)。予約確定後の画面と確認メールにて、お支払い用リンク(Square)をご案内します。追加データ等のオプション料金は撮影当日のお支払いです。<br><br>
             ※ヘアメイクスタッフの手配の都合上、撮影日3日前からのキャンセルにはキャンセル料を申し受けます。あらかじめご了承ください。<br>
             3日前:30%　2日前:50%　前日:100%
           </div>
@@ -1111,6 +1131,13 @@
       if (referrerNameGroup) referrerNameGroup.style.display = 'block';
       const referrerNameInput = document.getElementById('referrerName');
       if (referrerNameInput) referrerNameInput.value = refCode;
+    }
+
+    // クーポンリンク(?coupon=コード)からの遷移: クーポンコード欄に自動入力しておく(有効かどうかの判定はGAS側)
+    const couponParam = new URLSearchParams(window.location.search).get('coupon');
+    if (couponParam) {
+      const couponInput = document.getElementById('couponCode');
+      if (couponInput) couponInput.value = couponParam.slice(0, 30);
     }
 
     fetch(GAS_WEB_APP_URL)
@@ -1223,7 +1250,52 @@
       }
     }
 
+    // クーポンコード(任意): 形式だけ確認する。有効なコードかどうかはGAS側で判定する
+    const couponInput = document.getElementById('couponCode');
+    const couponNormalized = normalizeCouponInput(couponInput.value);
+    if (couponNormalized && !/^[A-Z0-9_-]{2,30}$/.test(couponNormalized)) {
+      couponInput.classList.add('input-error');
+      document.getElementById('couponCodeError').classList.add('show');
+      isValid = false;
+    } else {
+      couponInput.classList.remove('input-error');
+      document.getElementById('couponCodeError').classList.remove('show');
+    }
+
     return isValid;
+  }
+
+  // 全角英数字→半角・前後の空白削除・大文字化(GAS側の normalizeCouponCode と同じ考え方。形式チェック用)
+  function normalizeCouponInput(v) {
+    return String(v || '')
+      .replace(/[Ａ-Ｚａ-ｚ０-９]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0xFEE0))
+      .replace(/[－ー―‐]/g, '-')
+      .replace(/[\s\u3000]+/g, ' ')
+      .trim()
+      .toUpperCase();
+  }
+
+  // 33000 → "33,000"
+  function yen(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+
+  // 完了画面のクーポン表示
+  // ・適用 → 金額を割引後に差し替え、「クーポン適用: ¥29,700(税込)」を表示
+  // ・無効 → 予約は通常料金で成立。「確認できなかったため通常料金で…」を表示
+  // ・GASがまだ旧版で coupon が返ってこない場合も、入力があれば「通常料金」と案内する(実際に通常料金で決済されるため)
+  function showCouponResult(coupon, enteredCode) {
+    const box = document.getElementById('couponResult');
+    const invalidMsg = 'クーポンコードが確認できなかったため通常料金でご案内しています';
+    if (coupon && coupon.applied) {
+      document.getElementById('completeAmount').textContent = `¥${yen(coupon.amount)}(税込)`;
+      box.textContent = `クーポン適用: ¥${yen(coupon.amount)}(税込)`;
+      if (coupon.baseAmount) box.textContent += ` ― 通常 ¥${yen(coupon.baseAmount)} から${coupon.label || '割引'}`;
+      box.classList.remove('is-invalid');
+      box.style.display = 'block';
+    } else if ((coupon && coupon.entered) || (!coupon && normalizeCouponInput(enteredCode))) {
+      box.textContent = (coupon && coupon.message) || invalidMsg;
+      box.classList.add('is-invalid');
+      box.style.display = 'block';
+    }
   }
 
   document.querySelectorAll('input[name="referralSource"]').forEach(el => {
@@ -1259,6 +1331,8 @@
         } else {
           document.getElementById('payLinkFallback').style.display = 'block';
         }
+
+        showCouponResult(json.coupon, data.couponCode);
 
         document.getElementById('mainForm').style.display = 'none';
         document.getElementById('completeView').style.display = 'block';
