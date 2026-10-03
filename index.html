@@ -643,6 +643,9 @@
     .radio-item.is-disabled input[type="radio"] { cursor: not-allowed; }
     .payment-note { margin-top: 10px; font-size: 0.8em; color: #999; font-weight: 300; line-height: 1.8; letter-spacing: 0.03em; }
     .payment-note.is-warn { color: var(--gold); }
+    /* 振込名義(カタカナ)入力欄(2026-10-03 D-068) */
+    .bank-kana-group { margin-top: 18px; margin-bottom: 0; padding-top: 16px; border-top: 1px dashed rgba(201,169,89,0.25); }
+    .bank-kana-group .notice-text { margin-top: 8px; }
     .bank-info h3 { font-size: 0.95em; color: var(--gold); font-weight: 500; letter-spacing: 0.08em; }
     .bank-info dl { margin-top: 10px; display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; font-size: 0.88em; color: #ddd; line-height: 1.8; }
     .bank-info dt { color: #999; white-space: nowrap; }
@@ -998,7 +1001,7 @@
             </dl>
             <pre id="bankInfoText"></pre>
             <div class="bank-notes">
-              ※お振込名義は、ご予約者様のお名前でお願いいたします。<br>
+              <span id="bankNameNote">※お振込名義は、ご予約者様のお名前でお願いいたします。</span><br>
               <span id="bankFeeNote"></span>
               ※追加データなどのオプション料金は、撮影当日に会場にて承ります。
             </div>
@@ -1132,6 +1135,13 @@
             </div>
             <div class="payment-note" id="bankNote">銀行振込の場合は仮予約となり、ご入金確認後に予約確定となります。お振込期限はお申込みから3日以内(撮影日の前日まで)です。</div>
             <div class="payment-note is-warn" id="bankUnavailableNote" style="display:none;">開催直前のためカード決済のみ</div>
+            <!-- 振込名義(カタカナ)。銀行振込を選んだときだけ表示・必須(2026-10-03 D-068) -->
+            <div class="input-group bank-kana-group" id="bankKanaBox" style="display:none;">
+              <span class="input-label">振込名義(カタカナ) <span class="required-badge">必須</span></span>
+              <input type="text" name="bankKana" id="bankKana" placeholder="ヤマダ タロウ" maxlength="50" autocomplete="off" disabled>
+              <div class="error-message" id="bankKanaError"></div>
+              <div class="notice-text">お振込みの際の名義(カタカナ)をご入力ください。会社名義の場合は会社名をご入力ください</div>
+            </div>
           </div>
 
           <div class="cancel-notice">
@@ -1271,6 +1281,52 @@
     const d = new Date(n * DAY_MS); const p = x => String(x).padStart(2, '0');
     return `${d.getUTCMonth() + 1}/${p(d.getUTCDate())}(${'日月火水木金土'[d.getUTCDay()]})`;
   }
+  // ===== 振込名義(カタカナ)(2026-10-03 D-068) =====
+  // 銀行振込を選んだときだけ表示・必須。freeeの銀行入金明細と注文を自動で照合するために使う。
+  // ひらがな・半角カナは自動で全角カタカナに直す(GAS側の normalizeBankKana_ と同じルール。変えるときは両方そろえる)
+  var BANK_KANA_MAX_LENGTH = 50;
+  var BANK_KANA_ERROR = '振込名義はカタカナで入力してください（ひらがなは自動でカタカナに変わります）';
+  var lastBankKana = ''; // 送信した振込名義(完了画面の表示用)
+  function normalizeBankKana(raw) {
+    var s = String(raw === null || raw === undefined ? '' : raw);
+    if (typeof s.normalize === 'function') s = s.normalize('NFKC'); // 半角カナ→全角(濁点も1文字に)
+    s = s.replace(/[\u3041-\u3096\u309D\u309E]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) + 0x60); }); // ひらがな→カタカナ
+    s = s.replace(/[\-\u2010-\u2015\u2212\uFF0D\uFF70]/g, '\u30FC'); // ハイフン類→長音「ー」
+    return s.replace(/[\s\u3000]+/g, ' ').trim().replace(/ /g, '\u3000'); // 空白をまとめて全角スペース1つに
+  }
+  function isValidBankKana(kana) {
+    return typeof kana === 'string' && kana.length > 0 && kana.length <= BANK_KANA_MAX_LENGTH &&
+      /^[\u30A1-\u30FA\u30FC\u30FB\u30FD\u30FE]+(\u3000[\u30A1-\u30FA\u30FC\u30FB\u30FD\u30FE]+)*$/.test(kana);
+  }
+  // 銀行振込を選んでいるときだけ振込名義の欄を出す(カードのときは隠して無効化=送信しない)
+  function updateBankKanaBox() {
+    const checked = document.querySelector('input[name="paymentMethod"]:checked');
+    const on = !!checked && checked.value === 'bank';
+    const input = document.getElementById('bankKana');
+    document.getElementById('bankKanaBox').style.display = on ? 'block' : 'none';
+    input.disabled = !on;
+    if (!on) showBankKanaError('');
+  }
+  function showBankKanaError(message) {
+    const input = document.getElementById('bankKana'), err = document.getElementById('bankKanaError');
+    input.classList.toggle('input-error', !!message);
+    err.textContent = message || '';
+    err.classList.toggle('show', !!message);
+  }
+  // 欄から離れたとき・送信前に、カタカナへ直してチェックする。OKなら true
+  function checkBankKana() {
+    const input = document.getElementById('bankKana');
+    if (input.disabled) return true;
+    const v = normalizeBankKana(input.value);
+    input.value = v;
+    const message = !v ? '振込名義(カタカナ)を入力してください。' : (!isValidBankKana(v) ? BANK_KANA_ERROR : '');
+    showBankKanaError(message);
+    return !message;
+  }
+  document.querySelectorAll('input[name="paymentMethod"]').forEach(r => r.addEventListener('change', updateBankKanaBox));
+  document.getElementById('bankKana').addEventListener('blur', () => { if (document.getElementById('bankKana').value) checkBankKana(); });
+  document.getElementById('bankKana').addEventListener('input', () => showBankKanaError(''));
+
   // 選んだ撮影日まで2日未満なら銀行振込を選べなくする(期限 = 申込日+3日 と 撮影日の前日 の早いほう)
   function updateBankOption() {
     const today = jstDayNumber(Date.now());
@@ -1287,6 +1343,7 @@
       note.textContent = `銀行振込の場合は仮予約となり、ご入金確認後に予約確定となります。この日程でのお振込期限: ${dayLabel(deadline)}まで(お申込みから3日以内・撮影日の前日まで)。`;
     }
     if (!available && radio.checked) document.querySelector('input[name="paymentMethod"][value="card"]').checked = true;
+    updateBankKanaBox(); // 振込名義の欄(D-068)。直前でカードに戻ったときは隠す
   }
 
   // 完了画面(銀行振込)。振込先などGASから返った文字は textContent で入れる(HTMLとして解釈させない)
@@ -1296,6 +1353,8 @@
     document.getElementById('bankAmount').textContent = `¥${yen(bt.amount)}(税込)`;
     document.getElementById('bankDeadline').textContent = bt.deadline || '';
     document.getElementById('bankInfoText').textContent = bt.info || 'お振込先は担当より別途ご案内いたします。';
+    const kana = bt.kana || lastBankKana; // 振込名義(D-068)
+    if (kana) document.getElementById('bankNameNote').textContent = `※ご入力いただいた振込名義（${kana}）でお振込みください。`;
     const fee = document.getElementById('bankFeeNote');
     fee.textContent = bt.feeNote ? `※${String(bt.feeNote).replace(/^※/, '')}` : '';
     if (bt.feeNote) fee.appendChild(document.createElement('br'));
@@ -1354,6 +1413,9 @@
         document.getElementById('referrerNameError').classList.remove('show');
       }
     }
+
+    // 振込名義(D-068): 銀行振込のときだけ必須・カタカナのみ
+    if (!checkBankKana()) isValid = false;
 
     // クーポンコード(任意): 形式だけ確認する。有効なコードかどうかはGAS側で判定する
     const couponInput = document.getElementById('couponCode');
@@ -1455,6 +1517,8 @@
 
     const data = Object.fromEntries(new FormData(form).entries());
     if (data.honeypot) return; // スパムボット対策
+    // 振込名義カナ(D-068)は銀行振込のときだけ送る(カードのときは欄が無効なので送られない)
+    if (data.paymentMethod === 'bank') { data.bankKana = normalizeBankKana(data.bankKana); lastBankKana = data.bankKana; } else { delete data.bankKana; }
 
     // text/plain で送ることでブラウザのCORSプリフライトを回避する(GAS Web Appの定番の書き方)
     // LINEの中で開いたときだけ lineIdToken を足す(LINE外では waitLine は即終わり・何も足さない)
