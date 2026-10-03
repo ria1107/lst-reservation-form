@@ -626,6 +626,18 @@
     }
     .coupon-result.is-invalid { color: #cfcfcf; border-color: rgba(255,255,255,0.18); background: rgba(255,255,255,0.03); }
 
+    /* お支払い方法(D-064) */
+    .radio-item.is-disabled { color: #666; cursor: not-allowed; }
+    .radio-item.is-disabled input[type="radio"] { cursor: not-allowed; }
+    .payment-note { margin-top: 10px; font-size: 0.8em; color: #999; font-weight: 300; line-height: 1.8; letter-spacing: 0.03em; }
+    .payment-note.is-warn { color: var(--gold); }
+    .bank-info h3 { font-size: 0.95em; color: var(--gold); font-weight: 500; letter-spacing: 0.08em; }
+    .bank-info dl { margin-top: 10px; display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; font-size: 0.88em; color: #ddd; line-height: 1.8; }
+    .bank-info dt { color: #999; white-space: nowrap; }
+    .bank-info dd { margin: 0; }
+    .bank-info dd strong { color: var(--gold); font-weight: 600; }
+    .bank-info .bank-notes { margin-top: 12px; font-size: 0.8em; color: #aaa; line-height: 1.9; }
+
     .input-error { border-color: #dc3545 !important; }
     .error-message { color: #ff6b6b; font-size: 0.8em; margin-top: 6px; display: none; }
     .error-message.show { display: block; }
@@ -958,11 +970,28 @@
 
       <div id="completeView">
         <div class="complete-icon">✓</div>
-        <h2 class="form-title">ご予約ありがとうございます</h2>
-        <div class="complete-text">ご予約を承りました。確認メールをお送りしましたのでご確認ください。<br><br>撮影費用 <strong id="completeAmount">¥33,000(税込)</strong> は、事前のお支払いをお願いしております。<br>下のボタンからお支払いください(確認メールにも同じリンクを記載しています)。<br>追加データなどのオプション料金は、撮影当日に会場にて承ります。</div>
+        <h2 class="form-title" id="completeTitle">ご予約ありがとうございます</h2>
+        <div class="complete-text" id="completeCardText">ご予約を承りました。確認メールをお送りしましたのでご確認ください。<br><br>撮影費用 <strong id="completeAmount">¥33,000(税込)</strong> は、事前のお支払いをお願いしております。<br>下のボタンからお支払いください(確認メールにも同じリンクを記載しています)。<br>追加データなどのオプション料金は、撮影当日に会場にて承ります。</div>
         <div id="couponResult" class="complete-text coupon-result" style="display:none;"></div>
         <a id="payLink" class="payment-link" href="#" target="_blank" rel="noopener" style="display:none;">撮影費用のお支払いへ進む</a>
         <div id="payLinkFallback" class="complete-text" style="display:none; margin-top:20px;">お支払い方法は、担当より別途メールにてご案内いたします。</div>
+        <!-- 銀行振込を選んだ方の完了画面(D-064)。中身は送信後にGASから返った値で埋める -->
+        <div id="bankComplete" style="display:none;">
+          <div class="complete-text">仮予約を承りました(仮受付)。確認メールをお送りしましたのでご確認ください。<br><strong>ご入金確認後に予約確定となります。</strong><br>下記の期限までにお振込みをお願いいたします。</div>
+          <div class="bank-info">
+            <h3>お振込のご案内</h3>
+            <dl>
+              <dt>お振込金額</dt><dd><strong id="bankAmount"></strong></dd>
+              <dt>お振込期限</dt><dd><strong id="bankDeadline"></strong> まで</dd>
+            </dl>
+            <pre id="bankInfoText"></pre>
+            <div class="bank-notes">
+              ※お振込名義は、ご予約者様のお名前でお願いいたします。<br>
+              <span id="bankFeeNote"></span>
+              ※追加データなどのオプション料金は、撮影当日に会場にて承ります。
+            </div>
+          </div>
+        </div>
         <div class="contact-info">ご不明な点は <strong>nishimoto@f-3.jp</strong> までご連絡ください</div>
       </div>
 
@@ -1075,8 +1104,19 @@
             </div>
           </div>
 
+          <!-- お支払い方法(D-064)。銀行振込の可否・振込期限はGAS側でも必ず確かめる -->
+          <div class="section">
+            <label>7. お支払い方法 <span class="required-badge">必須</span></label>
+            <div class="radio-group vertical">
+              <label class="radio-item"><input type="radio" name="paymentMethod" value="card" checked> クレジットカード(Square)</label>
+              <label class="radio-item" id="bankOption"><input type="radio" name="paymentMethod" value="bank" id="bankRadio"> 銀行振込</label>
+            </div>
+            <div class="payment-note" id="bankNote">銀行振込の場合は仮予約となり、ご入金確認後に予約確定となります。お振込期限はお申込みから3日以内(撮影日の前日まで)です。</div>
+            <div class="payment-note is-warn" id="bankUnavailableNote" style="display:none;">開催直前のためカード決済のみ</div>
+          </div>
+
           <div class="cancel-notice">
-            ※撮影費用 ¥33,000(税込)は事前決済です(クーポンご利用の場合は割引後の金額となります)。予約確定後の画面と確認メールにて、お支払い用リンク(Square)をご案内します。追加データ等のオプション料金は撮影当日のお支払いです。<br><br>
+            ※撮影費用 ¥33,000(税込)は事前のお支払いです(クーポンご利用の場合は割引後の金額となります)。クレジットカードの場合は予約確定後の画面と確認メールにてお支払い用リンク(Square)を、銀行振込の場合は振込先とお振込期限をご案内します。追加データ等のオプション料金は撮影当日のお支払いです。<br><br>
             ※ヘアメイクスタッフの手配の都合上、撮影日3日前からのキャンセルにはキャンセル料を申し受けます。あらかじめご了承ください。<br>
             3日前:30%　2日前:50%　前日:100%
           </div>
@@ -1195,6 +1235,50 @@
       container.appendChild(btn);
     });
     if (availableCount === 0) msg.style.display = 'block';
+    updateBankOption();
+  }
+
+  // ---------- 銀行振込(D-064) ----------
+  // 日本時間の「日付」を通し番号にする(GAS側の computeBankTransferDeadline と同じ考え方)
+  const DAY_MS = 24 * 60 * 60 * 1000;
+  function jstDayNumber(ms) { return Math.floor((ms + 9 * 3600 * 1000) / DAY_MS); }
+  function ymdDayNumber(ymd) { // 'yyyy/MM/dd' → 通し番号
+    const m = /^(\d{4})\/(\d{2})\/(\d{2})/.exec(ymd || '');
+    return m ? Math.floor(Date.UTC(+m[1], +m[2] - 1, +m[3]) / DAY_MS) : NaN;
+  }
+  function dayLabel(n) {
+    const d = new Date(n * DAY_MS); const p = x => String(x).padStart(2, '0');
+    return `${d.getUTCMonth() + 1}/${p(d.getUTCDate())}(${'日月火水木金土'[d.getUTCDay()]})`;
+  }
+  // 選んだ撮影日まで2日未満なら銀行振込を選べなくする(期限 = 申込日+3日 と 撮影日の前日 の早いほう)
+  function updateBankOption() {
+    const today = jstDayNumber(Date.now());
+    const shoot = ymdDayNumber(document.getElementById('dateSelect').value);
+    const available = !isNaN(shoot) && shoot - today >= 2;
+    const radio = document.getElementById('bankRadio');
+    radio.disabled = !available;
+    document.getElementById('bankOption').classList.toggle('is-disabled', !available);
+    document.getElementById('bankUnavailableNote').style.display = available ? 'none' : 'block';
+    const note = document.getElementById('bankNote');
+    note.style.display = available ? 'block' : 'none';
+    if (available) {
+      const deadline = Math.min(today + 3, shoot - 1);
+      note.textContent = `銀行振込の場合は仮予約となり、ご入金確認後に予約確定となります。この日程でのお振込期限: ${dayLabel(deadline)}まで(お申込みから3日以内・撮影日の前日まで)。`;
+    }
+    if (!available && radio.checked) document.querySelector('input[name="paymentMethod"][value="card"]').checked = true;
+  }
+
+  // 完了画面(銀行振込)。振込先などGASから返った文字は textContent で入れる(HTMLとして解釈させない)
+  function showBankComplete(bt, coupon) {
+    document.getElementById('completeTitle').textContent = '仮予約を承りました';
+    document.getElementById('completeCardText').style.display = 'none';
+    document.getElementById('bankAmount').textContent = `¥${yen(bt.amount)}(税込)`;
+    document.getElementById('bankDeadline').textContent = bt.deadline || '';
+    document.getElementById('bankInfoText').textContent = bt.info || 'お振込先は担当より別途ご案内いたします。';
+    const fee = document.getElementById('bankFeeNote');
+    fee.textContent = bt.feeNote ? `※${String(bt.feeNote).replace(/^※/, '')}` : '';
+    if (bt.feeNote) fee.appendChild(document.createElement('br'));
+    document.getElementById('bankComplete').style.display = 'block';
   }
 
   function validateForm(form) {
@@ -1323,8 +1407,11 @@
       .then(json => {
         if (!json.ok) throw new Error(json.error || '送信に失敗しました');
 
+        // 銀行振込(GASが bankTransfer を返したときだけ。旧GASならカードの表示のまま)
+        if (json.paymentMethod === 'bank' && json.bankTransfer) {
+          showBankComplete(json.bankTransfer, json.coupon);
         // Square事前決済リンク: 発行できていればボタン表示、なければ案内文に切り替え
-        if (json.paymentUrl) {
+        } else if (json.paymentUrl) {
           const payLink = document.getElementById('payLink');
           payLink.href = json.paymentUrl;
           payLink.style.display = 'inline-block';
