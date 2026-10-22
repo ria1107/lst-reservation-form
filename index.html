@@ -624,6 +624,17 @@
       margin-top: 18px; padding: 12px 16px; border: 1px solid var(--gold-dim);
       background: rgba(201,169,89,0.06); color: var(--gold); border-radius: 2px; line-height: 1.8;
     }
+    /* チラシ特典(D-108)。LINEの中で開いたチラシ経由の方にだけ表示(GASが「特典あり」と答えたときだけ) */
+    .perk-box {
+      display: none; margin: 0 0 28px; padding: 18px 20px; border: 1px solid var(--gold);
+      background: linear-gradient(135deg, rgba(201,169,89,0.14), rgba(201,169,89,0.04)); text-align: center; line-height: 1.9;
+    }
+    .perk-box .perk-label { display: inline-block; font-size: 0.72em; letter-spacing: 0.28em; color: var(--gold); border-bottom: 1px solid var(--gold-dim); padding-bottom: 4px; margin-bottom: 8px; }
+    .perk-box .perk-price { font-family: "Noto Serif JP", serif; font-size: 1.35em; color: #f3ead6; letter-spacing: 0.06em; }
+    .perk-box .perk-price { white-space: nowrap; }
+    .perk-box .perk-price small { font-size: 0.55em; color: #bbb; margin-left: 2px; }
+    .perk-box .perk-price s { color: #8a8a8a; font-size: 0.7em; margin-right: 8px; }
+    .perk-box .perk-note { font-size: 0.78em; color: #bbb; font-weight: 300; }
     .coupon-result.is-invalid { color: #cfcfcf; border-color: rgba(255,255,255,0.18); background: rgba(255,255,255,0.03); }
 
     /* お支払い方法(D-064) */
@@ -1094,6 +1105,13 @@
             </div>
           </div>
 
+          <!-- チラシ特典(D-108)。表示するかどうか・金額はGASが決める(古いGASでは表示されず従来どおり) -->
+          <div class="perk-box" id="chirashiPerk" aria-live="polite">
+            <span class="perk-label">チラシ特典</span><br>
+            <span class="perk-price"><s id="perkBase">¥33,000</s>10%OFF <strong id="perkAmount">¥29,700</strong><small>(税込)</small></span><br>
+            <span class="perk-note">チラシからLINE登録いただいた方の特典です。このまま予約すると自動で適用されます(コード入力は不要です)。</span>
+          </div>
+
           <!-- 割引クーポンコード(D-060)。コードの判定は必ずGAS側で行う(ここに有効なコードは書かない) -->
           <div class="section">
             <label for="couponCode">6. クーポンコード(お持ちの方のみ)</label>
@@ -1373,7 +1391,7 @@
     const invalidMsg = 'クーポンコードが確認できなかったため通常料金でご案内しています';
     if (coupon && coupon.applied) {
       document.getElementById('completeAmount').textContent = `¥${yen(coupon.amount)}(税込)`;
-      box.textContent = `クーポン適用: ¥${yen(coupon.amount)}(税込)`;
+      box.textContent = `${coupon.chirashi ? 'チラシ特典適用' : 'クーポン適用'}: ¥${yen(coupon.amount)}(税込)`;
       if (coupon.baseAmount) box.textContent += ` ― 通常 ¥${yen(coupon.baseAmount)} から${coupon.label || '割引'}`;
       box.classList.remove('is-invalid');
       box.style.display = 'block';
@@ -1411,6 +1429,21 @@
     s.onerror = () => resolve();
     document.head.appendChild(s);
   });
+  // チラシ特典の問い合わせ(D-108): LINEの中で本人確認できたら、GASに「この人にチラシ特典はある?」と聞く。
+  // GASが chirashi:true を返したときだけ特典の枠を出す。古いGAS(空き枠だけ返す)・通信失敗のときは何も出さない=従来どおり
+  lineReady.then(() => {
+    if (!lineIdToken) return;
+    fetch(`${GAS_WEB_APP_URL}?action=line-perks&lineIdToken=${encodeURIComponent(lineIdToken)}`)
+      .then(r => r.json())
+      .then(p => {
+        if (!p || p.chirashi !== true || !p.amount) return;
+        document.getElementById('perkAmount').textContent = `¥${yen(p.amount)}`;
+        if (p.baseAmount) document.getElementById('perkBase').textContent = `¥${yen(p.baseAmount)}`;
+        document.getElementById('chirashiPerk').style.display = 'block';
+      })
+      .catch(() => {});
+  });
+
   // 送信時に最大3秒だけLIFFの準備を待つ(待ちすぎて予約できない、を防ぐ)
   const waitLine = () => Promise.race([lineReady, new Promise(r => setTimeout(r, 3000))]);
 
