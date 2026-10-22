@@ -67,3 +67,17 @@ Cloudflare Pages Custom Domains APIで`lst.f-3.jp`を追加(状態: `pending`、
 ## 参考
 
 同じ手法での移行実績: `会社基盤/products/印鑑販売_行政書士様向け/Cloudflare移行メモ.md`(2026-09-18追記に今回のAPI操作の詳細・6フォーム分のCNAME一覧あり)
+
+## 7. 【2026-10-22追記】本番の正体とデプロイ経路(D-106 LIFF対応の本番化で調査)
+
+| URL | 中身 | 備考 |
+|---|---|---|
+| https://lst-reservation.f-3.jp/ | Pagesプロジェクト `f3-lst-reservation` の本番 | **お客様に案内する本番URL**。中身はpages.devと同一(Cloudflareのメール難読化でメールアドレス部分だけ表示が違う) |
+| https://f3-lst-reservation.pages.dev/ | 同上 | LINEのLIFF(本番 `2012156192-mIEOjHYR`)の開き先 |
+| https://ria1107.github.io/lst-reservation-form/ | GitHubの `main` をそのまま配信する旧版 | 停止するかは社長判断(下記) |
+| `lst.f-3.jp` | 名前解決できない(使われていない) | 9/18に追加申請したがCNAME未設定のまま |
+
+- `f3-lst-reservation` は **GitHub(ria1107/lst-reservation-form)の`main`と連携済み**。出力フォルダーはリポジトリ直下(空欄=直下)で、過去のGit自動ビルドも中身入りで成功していた(個別URLを1つずつ確認済み)。
+- 10/03のD-064までは `wrangler pages deploy` の直接アップロードで本番に出しており、GitHubの`main`は古いまま(9/27の6e3e77b)だった → **GitHubの`main`にpushすると、その中身が本番に出る**。今後は「`main`にpush=本番反映」の1経路に統一する。
+- 手元フォルダーの `.git` は `refs/heads/main.lock`・`index.lock` の残骸で `main` が空に見える状態(10/04から)。中身は D-068(振込名義カナ・未公開)のコミット 53ad422。10/22の本番化は手元を触らず、一時クローンから push した。手元の修復(main.lockの退避)は社長確認後に行う。
+- GitHub Pages版は `main` を配信しているので、`main` へのpushで同じ新版になる(古い版が残る心配はなくなった)。商用利用の規約リスクがあるため、停止(Settings → Pages → Unpublish)を推奨。停止は社長判断。

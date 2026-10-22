@@ -1163,7 +1163,9 @@
   // ---------- 予約フォーム ----------
   window.addEventListener('DOMContentLoaded', () => {
     // 紹介リンク(?ref=コード)からの遷移: 「ご来店のきっかけ」を自動で「紹介」にし、紹介者名欄にコードを入力しておく
-    const refCode = new URLSearchParams(window.location.search).get('ref');
+    // LINEの紹介リンク(https://liff.line.me/<LIFF ID>?ref=コード)で開いた直後は、?ref= が liff.state の中に入っているので、そこも見る(D-107)
+    const qs = new URLSearchParams(window.location.search);
+    const refCode = qs.get('ref') || new URLSearchParams(String(qs.get('liff.state') || '').replace(/^[^?]*\?/, '')).get('ref');
     if (refCode) {
       const referralRadio = document.querySelector('input[name="referralSource"][value="紹介"]');
       if (referralRadio) referralRadio.checked = true;
@@ -1389,6 +1391,29 @@
     });
   });
 
+  // ===== LINE(LIFF)連携 (2026-10-22 D-106) =====
+  // LINEアプリの中で開かれたときだけ LIFF SDK を読み込み、「LINEの本人証明書(IDトークン)」を
+  // 予約データの lineIdToken に入れて送る。GAS側でLINEに本物か確かめて友だちと紐づける。
+  // ★LINEの外(普通のブラウザ)では SDK を読み込まず、何もしない = 今までと全く同じ動き。
+  // ★LIFF_ID を変えるのはここだけ(テスト用と本番用でIDが違う)。
+  const LIFF_ID = '2012156192-mIEOjHYR'; // 本番用LIFF(2026-10-22 本番化)。テスト用は 2012156192-kkzmYgvS(テスト版は scripts/build_test_deploy.py が差し替える)
+  const inLineApp = /\bLine\//i.test(navigator.userAgent) || /[?&]liff\.state=/.test(location.search);
+  let lineIdToken = '';
+  const lineReady = !inLineApp ? Promise.resolve() : new Promise(resolve => {
+    const s = document.createElement('script');
+    s.src = 'https://static.line-scdn.net/liff/edge/2/sdk.js';
+    s.onload = () => {
+      liff.init({ liffId: LIFF_ID })
+        .then(() => { if (liff.isLoggedIn()) lineIdToken = liff.getIDToken() || ''; })
+        .catch(err => console.warn('LIFF init failed', err)) // 失敗しても予約はそのまま送れる
+        .finally(resolve);
+    };
+    s.onerror = () => resolve();
+    document.head.appendChild(s);
+  });
+  // 送信時に最大3秒だけLIFFの準備を待つ(待ちすぎて予約できない、を防ぐ)
+  const waitLine = () => Promise.race([lineReady, new Promise(r => setTimeout(r, 3000))]);
+
   function handleFormSubmit(form) {
     if (!validateForm(form)) return;
     const sBtn = document.getElementById('sBtn');
@@ -1398,17 +1423,24 @@
     if (data.honeypot) return; // スパムボット対策
 
     // text/plain で送ることでブラウザのCORSプリフライトを回避する(GAS Web Appの定番の書き方)
-    fetch(GAS_WEB_APP_URL, {
+    // LINEの中で開いたときだけ lineIdToken を足す(LINE外では waitLine は即終わり・何も足さない)
+    waitLine().then(() => {
+      if (lineIdToken) data.lineIdToken = lineIdToken;
+      return fetch(GAS_WEB_APP_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(data),
+      });
     })
       .then(r => r.json())
       .then(json => {
         if (!json.ok) throw new Error(json.error || '送信に失敗しました');
 
+        // 無料撮影コード(紹介特典・D-107)で0円になったとき: 決済リンクは作られない。お支払い不要と表示
+        if (json.free) {
+          document.getElementById('completeCardText').innerHTML = 'ご予約を承りました。確認メールをお送りしましたのでご確認ください。<br><br>今回の撮影費用は<strong>無料撮影コードの適用により0円</strong>です。お支払いの手続きは不要です。<br>追加データなどのオプション料金は、撮影当日に会場にて承ります。';
         // 銀行振込(GASが bankTransfer を返したときだけ。旧GASならカードの表示のまま)
-        if (json.paymentMethod === 'bank' && json.bankTransfer) {
+        } else if (json.paymentMethod === 'bank' && json.bankTransfer) {
           showBankComplete(json.bankTransfer, json.coupon);
         // Square事前決済リンク: 発行できていればボタン表示、なければ案内文に切り替え
         } else if (json.paymentUrl) {
