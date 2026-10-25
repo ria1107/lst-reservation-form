@@ -1027,6 +1027,8 @@
           <a id="lineRegisterBtn" class="line-register-btn" href="#" rel="noopener">LINEで友だち登録する</a>
           <small>確認メールにも同じリンクを記載しています</small>
         </div>
+        <!-- 予約確認ページ(D-121)。GASが manageUrl を返したときだけ出す -->
+        <div id="manageBox" class="complete-text" style="display:none; margin-top:24px;">ご予約内容の確認・日程変更・キャンセルは<a id="manageLink" href="#" style="color:var(--gold);">こちらのページ</a>からできます(確認メールにも記載しています)。</div>
         <div class="contact-info">ご不明な点は <strong>nishimoto@f-3.jp</strong> までご連絡ください</div>
       </div>
 
@@ -1598,6 +1600,10 @@
 
         showCouponResult(json.coupon, data.couponCode);
         showLineRegister(json.line);
+        if (typeof json.manageUrl === 'string' && /^https:\/\//.test(json.manageUrl)) {
+          document.getElementById('manageLink').href = json.manageUrl;
+          document.getElementById('manageBox').style.display = 'block';
+        }
 
         document.getElementById('mainForm').style.display = 'none';
         document.getElementById('completeView').style.display = 'block';

@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>ご予約の確認・変更 | Leading Style Tokyo</title>
+<style>
+  :root { --gold: #c9a959; --gold-dim: rgba(201,169,89,.35); --gold-faint: rgba(201,169,89,.12); --ink: #0a0a0a; --paper: #e8e8e8; --muted: #999; --danger: #d9776b; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--ink); color: var(--paper); font-family: "Hiragino Mincho ProN", "Yu Mincho", serif; padding: 24px 16px 48px; }
+  .wrap { max-width: 480px; margin: 0 auto; }
+  .brand { font-size: 12px; letter-spacing: .25em; color: var(--muted); text-align: center; }
+  h1 { font-size: 21px; color: var(--gold); font-weight: normal; letter-spacing: .1em; text-align: center; margin: 10px 0 24px; }
+  h2 { font-size: 16px; color: var(--gold); font-weight: 600; margin: 0 0 12px; }
+  p { font-size: 15px; line-height: 1.85; margin: 0; }
+  .card { border: 1px solid var(--gold-dim); padding: 20px 18px; margin-bottom: 18px; }
+  dl { display: grid; grid-template-columns: 6.5em 1fr; gap: 8px 10px; margin: 0; font-size: 15px; }
+  dt { color: var(--muted); } dd { margin: 0; overflow-wrap: anywhere; }
+  .big { font-size: 18px; color: var(--gold); }
+  .btn { display: block; width: 100%; margin-top: 14px; padding: 14px; border-radius: 3px; font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer; border: 1px solid var(--gold-dim); background: transparent; color: var(--gold); }
+  .btn-main { background: linear-gradient(145deg, var(--gold), #a8893d); color: var(--ink); border: none; }
+  .btn-danger { color: var(--danger); border-color: rgba(217,119,107,.5); }
+  .btn-danger.solid { background: var(--danger); color: #fff; border: none; }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .note { font-size: 13px; color: var(--muted); line-height: 1.7; margin-top: 10px; }
+  .box { background: var(--gold-faint); padding: 14px; margin-top: 12px; font-size: 14px; line-height: 1.8; }
+  .err { color: var(--danger); font-size: 14px; margin-top: 10px; line-height: 1.7; }
+  select { width: 100%; padding: 12px; font-size: 15px; background: #141414; color: var(--paper); border: 1px solid var(--gold-dim); font-family: inherit; }
+  .times { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .time { padding: 10px 14px; border: 1px solid var(--gold-dim); cursor: pointer; font-size: 15px; }
+  .time.sel { background: var(--gold); color: var(--ink); }
+  label.agree { display: flex; gap: 10px; align-items: flex-start; margin-top: 14px; font-size: 14px; line-height: 1.7; cursor: pointer; }
+  label.agree input { margin-top: 5px; width: 18px; height: 18px; flex: none; }
+  .hidden { display: none !important; }
+  .contact { text-align: center; font-size: 13px; color: var(--muted); margin-top: 26px; line-height: 1.8; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand">LEADING STYLE TOKYO</div>
+  <h1>ご予約の確認・変更</h1>
+  <div id="status" class="card"><p id="statusText">読み込んでいます…</p></div>
+  <div id="list"></div>
+  <div class="contact">ご不明な点は 公式LINEのトーク、または<br><strong>nishimoto@f-3.jp</strong> までご連絡ください</div>
+</div>
+
+<template id="tpl">
+  <div class="card res">
+    <h2>ご予約内容</h2>
+    <dl>
+      <dt>日時</dt><dd class="big" data-k="when"></dd>
+      <dt>お名前</dt><dd data-k="name"></dd>
+      <dt>会場</dt><dd>東京都荒川区東日暮里2-17-12 長谷川ビル2F(青い門扉から2階へ)</dd>
+      <dt>お支払い</dt><dd data-k="pay"></dd>
+    </dl>
+    <div class="view-main">
+      <button class="btn btn-main" data-a="open-res">日程を変更する</button>
+      <p class="note" data-k="resNote"></p>
+      <button class="btn btn-danger" data-a="open-cancel">キャンセルする</button>
+    </div>
+
+    <div class="view-res hidden">
+      <div class="box">日程変更は撮影日の4日前まで無料で承ります。お支払い内容はそのまま引き継がれます。</div>
+      <p class="note">変更先の日付</p>
+      <select data-k="dateSel"></select>
+      <div class="times" data-k="times"></div>
+      <p class="err hidden" data-k="resErr"></p>
+      <button class="btn btn-main" data-a="do-res" disabled>この日時に変更する</button>
+      <button class="btn" data-a="back">戻る</button>
+    </div>
+
+    <div class="view-cancel hidden">
+      <div class="box">ヘアメイクスタッフ手配の都合上、撮影日3日前からのキャンセルにはキャンセル料を申し受けます。<br>・3日前: 30%　・2日前: 50%　・前日・当日: 100%</div>
+      <div class="box"><strong>今キャンセルした場合: </strong><span data-k="cancelText"></span></div>
+      <label class="agree"><input type="checkbox" data-k="agree">キャンセルポリシーと上記のキャンセル料に同意して、このご予約をキャンセルします</label>
+      <p class="err hidden" data-k="cancelErr"></p>
+      <button class="btn btn-danger solid" data-a="do-cancel" disabled>予約をキャンセルする</button>
+      <button class="btn" data-a="back">戻る</button>
+    </div>
+
+    <div class="view-done hidden"><div class="box" data-k="doneText"></div></div>
+  </div>
+</template>
+
+<script>
+  // 予約確認ページ(D-121 / 2026-10-25)。確認メール・LINEのリンク(?t=予約管理コード)から開く。
+  // LINEの中で https://liff.line.me/<LIFF_ID>/manage として開いた場合はコード無しでも、LINEの本人証明書から自分の予約を表示する。
+  // 予約内容の確認・日程変更・キャンセルはすべてGAS(予約変更キャンセル.js)が最終判断する(料金・期限の計算もGAS側)
+  const LIFF_ID = '2012156192-mIEOjHYR';
+  const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwaFVhsvOTZk6b8nH9ikNyoFJyqOuIuLG1eF8KkjgSvZgoD0uUzet0hzfJZfdZ3Pk0F/exec';
+  const qs = new URLSearchParams(location.search);
+  const code = qs.get('t') || '';
+  const inLine = /\bLine\//i.test(navigator.userAgent);
+  const via = inLine ? 'line' : 'web';
+  const yen = n => String(Math.floor(Number(n) || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  const setStatus = (text, show = true) => { document.getElementById('statusText').textContent = text; document.getElementById('status').classList.toggle('hidden', !show); };
+  const post = body => fetch(GAS_WEB_APP_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body) }).then(r => r.json());
+  let slotsCache = null;
+  const loadSlots = () => slotsCache || (slotsCache = fetch(GAS_WEB_APP_URL).then(r => r.json()).then(j => (j.ok ? j.slots : {})));
+  // 'yyyy/MM/dd' が明日以降(日本時間)か
+  const isFuture = d => { const t = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10).replace(/-/g, '/'); return d > t; };
+
+  function render(list) {
+    const box = document.getElementById('list'); box.innerHTML = '';
+    if (!list.length) { setStatus('これからのご予約は見つかりませんでした。'); return; }
+    setStatus('', false);
+    list.forEach(r => box.appendChild(card(r)));
+  }
+
+  function card(r) {
+    const el = document.getElementById('tpl').content.firstElementChild.cloneNode(true);
+    const k = n => el.querySelector(`[data-k="${n}"]`);
+    const a = n => el.querySelectorAll(`[data-a="${n}"]`);
+    const view = v => ['main', 'res', 'cancel', 'done'].forEach(x => el.querySelector('.view-' + x).classList.toggle('hidden', x !== v));
+    k('when').textContent = `${r.dateLabel} ${r.slot}`;
+    k('name').textContent = `${r.name} 様`;
+    k('pay').textContent = r.amount === 0 ? '無料撮影コード(お支払い不要)'
+      : `${r.paymentMethod || ''} ${yen(r.amount)}円(税込)` + (r.unpaidBank ? `/お振込期限 ${r.bankDeadline} まで(入金確認前)` : '');
+    const resBtn = a('open-res')[0];
+    if (!r.reschedule.allowed) { resBtn.disabled = true; k('resNote').textContent = r.reschedule.reason || ''; }
+    const cancelBtn = a('open-cancel')[0];
+    if (!r.cancel.allowed) cancelBtn.classList.add('hidden');
+    a('back').forEach(b => b.onclick = () => view('main'));
+
+    // ---- キャンセル ----
+    cancelBtn.onclick = () => { k('cancelText').textContent = r.cancel.text; k('agree').checked = false; a('do-cancel')[0].disabled = true; view('cancel'); };
+    k('agree').onchange = e => { a('do-cancel')[0].disabled = !e.target.checked; };
+    a('do-cancel')[0].onclick = e => {
+      const b = e.target; b.disabled = true; b.textContent = '処理しています…'; k('cancelErr').classList.add('hidden');
+      post({ action: 'manage-cancel', manageCode: r.code, expectedFee: r.cancel.fee, via }).then(res => {
+        if (!res.ok) throw new Error(res.feeChanged ? res.error : (res.error || 'キャンセルできませんでした'));
+        k('doneText').textContent = `ご予約(${r.dateLabel} ${r.slot})のキャンセルを承りました。${res.text || ''} 確認のメールをお送りしました。`;
+        view('done');
+      }).catch(err => { k('cancelErr').textContent = err.message; k('cancelErr').classList.remove('hidden'); b.disabled = false; b.textContent = '予約をキャンセルする'; });
+    };
+
+    // ---- 日程変更 ----
+    let newRow = '';
+    resBtn.onclick = () => {
+      view('res'); const sel = k('dateSel'); sel.innerHTML = '<option>読み込んでいます…</option>';
+      loadSlots().then(slots => {
+        sel.innerHTML = '';
+        const dates = Object.keys(slots).filter(d => isFuture(d) && slots[d].items.some(s => s.available)).sort();
+        if (!dates.length) { sel.innerHTML = '<option>空いている日程がありません</option>'; return; }
+        dates.forEach(d => { const o = new Option(`${slots[d].labelBase}(空き${slots[d].items.filter(s => s.available).length}枠)`, d); sel.add(o); });
+        const showTimes = () => {
+          const t = k('times'); t.innerHTML = ''; newRow = ''; a('do-res')[0].disabled = true;
+          slots[sel.value].items.filter(s => s.available).forEach(s => {
+            const b = document.createElement('div'); b.className = 'time'; b.textContent = s.time;
+            b.onclick = () => { t.querySelectorAll('.time').forEach(x => x.classList.remove('sel')); b.classList.add('sel'); newRow = s.rowIndex; a('do-res')[0].disabled = false; };
+            t.appendChild(b);
+          });
+        };
+        sel.onchange = showTimes; showTimes();
+      }).catch(() => { sel.innerHTML = '<option>日程を読み込めませんでした</option>'; });
+    };
+    a('do-res')[0].onclick = e => {
+      if (!newRow) return;
+      const b = e.target; b.disabled = true; b.textContent = '処理しています…'; k('resErr').classList.add('hidden');
+      post({ action: 'manage-reschedule', manageCode: r.code, newRow, via }).then(res => {
+        if (!res.ok) { if (res.slotTaken) slotsCache = null; throw new Error(res.error || '変更できませんでした'); }
+        r.dateLabel = res.dateLabel; r.slot = res.slot; r.iso = res.iso; if (res.bankDeadline) r.bankDeadline = res.bankDeadline;
+        k('when').textContent = `${r.dateLabel} ${r.slot}`;
+        k('doneText').textContent = `日程を ${r.dateLabel} ${r.slot} に変更しました。確認のメールをお送りしました。`;
+        view('done');
+      }).catch(err => { k('resErr').textContent = err.message; k('resErr').classList.remove('hidden'); b.disabled = false; b.textContent = 'この日時に変更する'; });
+    };
+    return el;
+  }
+
+  function loadByCode() {
+    return post({ action: 'manage-get', manageCode: code }).then(res => {
+      if (!res.ok) throw new Error(res.error);
+      render(res.reservations);
+    });
+  }
+  function loadByLine() {
+    return new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://static.line-scdn.net/liff/edge/2/sdk.js';
+      s.onload = () => liff.init({ liffId: LIFF_ID }).then(() => {
+        if (!liff.isLoggedIn()) { liff.login({ redirectUri: location.href }); return; }
+        return post({ action: 'manage-get', lineIdToken: liff.getIDToken() }).then(res => { if (!res.ok) throw new Error(res.error); render(res.reservations); });
+      }).then(resolve, reject);
+      s.onerror = () => reject(new Error('LINEの読み込みに失敗しました'));
+      document.head.appendChild(s);
+    });
+  }
+
+  (code ? loadByCode() : (inLine || qs.has('liff.state') || /liff/.test(document.referrer) ? loadByLine() : Promise.reject(new Error('確認メールまたは公式LINEのリンクから開いてください。'))))
+    .catch(err => setStatus(err.message || '読み込みに失敗しました。時間をおいてもう一度お試しください。'));
+</script>
+</body>
+</html>
