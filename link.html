@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>LINE登録 | Leading Style Tokyo</title>
+<style>
+  :root { --gold: #c9a959; --gold-dim: rgba(201,169,89,.35); --ink: #0a0a0a; --paper: #e8e8e8; --muted: #999; }
+  body { margin: 0; background: var(--ink); color: var(--paper); font-family: "Hiragino Mincho ProN", "Yu Mincho", serif;
+    display: flex; min-height: 100vh; align-items: center; justify-content: center; padding: 16px; box-sizing: border-box; }
+  .card { max-width: 420px; width: 100%; border: 1px solid var(--gold-dim); padding: 32px 22px; text-align: center; box-sizing: border-box; }
+  .brand { font-size: 12px; letter-spacing: .25em; color: var(--muted); margin-bottom: 14px; }
+  h1 { font-size: 20px; color: var(--gold); font-weight: normal; letter-spacing: .1em; margin: 0 0 16px; }
+  p { font-size: 15px; line-height: 1.9; margin: 0; }
+  .btn { display: inline-block; margin-top: 20px; padding: 13px 26px; border-radius: 4px; text-decoration: none; font-weight: 700;
+    font-family: inherit; font-size: 15px; border: none; cursor: pointer; }
+  .btn-line { background: #06C755; color: #fff; }
+  .btn-sub { background: transparent; color: var(--gold); border: 1px solid var(--gold-dim); }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="brand">LEADING STYLE TOKYO</div>
+  <h1 id="title">LINE登録</h1>
+  <p id="msg">確認しています…</p>
+  <a id="addFriend" class="btn btn-line hidden" href="#">LINEで友だち追加する</a><br>
+  <button id="retry" class="btn btn-sub hidden" type="button">友だち追加しました</button>
+  <button id="close" class="btn btn-sub hidden" type="button">トークに戻る</button>
+</div>
+<script>
+  // LINEの外(LPなど)で予約した方が、完了画面・確認メールの「LINE登録のお願い」ボタンから開くページ(D-120 / 2026-10-25)
+  // URL: https://liff.line.me/<LIFF_ID>/link?t=<予約ごとの連携コード>
+  // 「連携コード+LINEの本人証明書(IDトークン)」をGASに送ると、GASが予約と友だちを結びつけ、タグ付け・予約確認LINEを行う
+  const LIFF_ID = '2012156192-mIEOjHYR'; // 本番LIFF(index.html と同じ)
+  const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwaFVhsvOTZk6b8nH9ikNyoFJyqOuIuLG1eF8KkjgSvZgoD0uUzet0hzfJZfdZ3Pk0F/exec';
+  const ADD_FRIEND_URL = 'https://line.me/R/ti/p/@380gjfnn';
+  const $ = id => document.getElementById(id);
+  const show = (id, on) => $(id).classList.toggle('hidden', !on);
+  const say = (title, text) => { $('title').textContent = title; $('msg').textContent = text; };
+  const FAIL = '連携できませんでした。お手数ですが、公式LINEのトークでお名前とご予約日をお知らせください。';
+  const code = new URLSearchParams(location.search).get('t') || '';
+
+  function link() {
+    say('LINE登録', '確認しています…');
+    show('retry', false);
+    return fetch(GAS_WEB_APP_URL, {
+      method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'line-link', linkCode: code, lineIdToken: liff.getIDToken() }),
+    }).then(r => r.json()).then(res => {
+      if (res.ok && (res.status === 'linked' || res.status === 'already')) {
+        say('ご登録ありがとうございます', 'ご予約とLINEの連携が完了しました。今後のご連絡やご質問はこのLINEで承ります。撮影の3日前・前日・当日の朝に、ご案内をお送りします。');
+        show('addFriend', false);
+        show('close', liff.isInClient());
+      } else if (res.ok && res.status === 'need-friend') {
+        say('あと1ステップです', '公式LINEの友だち追加がまだのようです。下のボタンから友だち追加をお願いします。追加後は自動でご予約と結びつきます。');
+        $('addFriend').href = /^https:\/\/line\.me\//.test(res.addFriendUrl || '') ? res.addFriendUrl : ADD_FRIEND_URL;
+        show('addFriend', true);
+        show('retry', true);
+      } else {
+        say('LINE登録', res.error ? `${res.error}。${FAIL}` : FAIL);
+        $('addFriend').href = ADD_FRIEND_URL;
+        show('addFriend', true);
+      }
+    }).catch(() => { say('LINE登録', FAIL); $('addFriend').href = ADD_FRIEND_URL; show('addFriend', true); });
+  }
+
+  $('retry').addEventListener('click', link);
+  $('close').addEventListener('click', () => liff.closeWindow());
+
+  const s = document.createElement('script');
+  s.src = 'https://static.line-scdn.net/liff/edge/2/sdk.js';
+  s.onload = () => {
+    liff.init({ liffId: LIFF_ID }).then(() => {
+      if (!liff.isLoggedIn()) { liff.login({ redirectUri: location.href }); return; }
+      if (!code) { say('LINE登録', 'リンクが正しくありません。確認メールのリンクから開き直してください。'); return; }
+      return link();
+    }).catch(() => say('LINE登録', 'LINEの読み込みに失敗しました。スマートフォンのLINEアプリから開き直してください。'));
+  };
+  s.onerror = () => say('LINE登録', 'LINEの読み込みに失敗しました。スマートフォンのLINEアプリから開き直してください。');
+  document.head.appendChild(s);
+</script>
+</body>
+</html>

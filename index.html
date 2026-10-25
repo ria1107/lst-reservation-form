@@ -700,6 +700,19 @@
       text-decoration: none; border-radius: 2px; font-weight: 600; letter-spacing: 0.05em;
     }
 
+    /* LINE登録のお願い(D-120)。LINEの外で予約した方の完了画面だけに出す */
+    .line-register {
+      margin: 30px auto 0; max-width: 460px; padding: 22px 20px; border: 1px solid var(--gold-dim);
+      background: var(--gold-faint); text-align: center;
+    }
+    .line-register h3 { margin: 0 0 10px; font-size: 17px; color: var(--gold); font-weight: 600; letter-spacing: 0.08em; }
+    .line-register p { margin: 0; font-size: 14px; line-height: 1.8; color: var(--paper); }
+    .line-register-btn {
+      display: inline-block; margin-top: 16px; padding: 14px 28px; background: #06C755; color: #fff;
+      text-decoration: none; border-radius: 4px; font-weight: 700; letter-spacing: 0.05em;
+    }
+    .line-register small { display: block; margin-top: 10px; font-size: 12px; color: var(--muted); }
+
     #loading { text-align: center; padding: 30px; color: #999; }
 
     #loadError {
@@ -1006,6 +1019,13 @@
               ※追加データなどのオプション料金は、撮影当日に会場にて承ります。
             </div>
           </div>
+        </div>
+        <!-- LINE登録のお願い(D-120)。GASが line.linkUrl(LINE外の予約)か line.addFriendUrl(LINE内だが未友だち)を返したときだけ出す -->
+        <div id="lineRegister" class="line-register" style="display:none;">
+          <h3>LINE登録のお願い</h3>
+          <p id="lineRegisterText">今後のご連絡やご質問への回答は、公式LINEで行っております。<br>お手数ですが、下のボタンから公式LINEにご登録ください。<br>ご予約と自動で結びつき、撮影の3日前・前日・当日の朝にLINEでご案内をお届けします。</p>
+          <a id="lineRegisterBtn" class="line-register-btn" href="#" rel="noopener">LINEで友だち登録する</a>
+          <small>確認メールにも同じリンクを記載しています</small>
         </div>
         <div class="contact-info">ご不明な点は <strong>nishimoto@f-3.jp</strong> までご連絡ください</div>
       </div>
@@ -1515,6 +1535,25 @@
       .catch(() => {});
   });
 
+  // LINE登録のお願い(D-120)。リッチメニュー(LINEの中)から予約して友だち連携できた人には何も出さない
+  // GASから来たURLは https の LINE のURLだけ受け付ける(念のため)
+  function showLineRegister(line) {
+    if (!line) return; // 古いGASは line を返さない → 何も出さない
+    const ok = u => typeof u === 'string' && /^https:\/\/(liff\.line\.me|line\.me)\//.test(u);
+    const btn = document.getElementById('lineRegisterBtn');
+    if (ok(line.linkUrl)) {
+      btn.href = line.linkUrl;
+    } else if (ok(line.addFriendUrl)) {
+      btn.href = line.addFriendUrl;
+      document.getElementById('lineRegisterText').textContent = '今後のご連絡やご質問への回答は、公式LINEで行っております。友だち追加がまだのようですので、下のボタンからご登録ください。登録後、撮影日に合わせてLINEでご案内をお届けします。';
+      btn.textContent = 'LINEで友だち追加する';
+      document.querySelector('#lineRegister small').style.display = 'none';
+    } else {
+      return;
+    }
+    document.getElementById('lineRegister').style.display = 'block';
+  }
+
   // 送信時に最大3秒だけLIFFの準備を待つ(待ちすぎて予約できない、を防ぐ)
   const waitLine = () => Promise.race([lineReady, new Promise(r => setTimeout(r, 3000))]);
 
@@ -1558,6 +1597,7 @@
         }
 
         showCouponResult(json.coupon, data.couponCode);
+        showLineRegister(json.line);
 
         document.getElementById('mainForm').style.display = 'none';
         document.getElementById('completeView').style.display = 'block';
