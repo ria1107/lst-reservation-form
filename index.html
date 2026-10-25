@@ -1112,8 +1112,8 @@
           <!-- チラシ特典(D-108)。表示するかどうか・金額はGASが決める(古いGASでは表示されず従来どおり) -->
           <div class="perk-box" id="chirashiPerk" aria-live="polite">
             <span class="perk-label">チラシ特典</span><br>
-            <span class="perk-price"><s id="perkBase">¥33,000</s>10%OFF <strong id="perkAmount">¥29,700</strong><small>(税込)</small></span><br>
-            <span class="perk-note">チラシからLINE登録いただいた方の特典です。このまま予約すると自動で適用されます(コード入力は不要です)。</span>
+            <span class="perk-price" id="perkPrice"><s id="perkBase">¥33,000</s>10%OFF <strong id="perkAmount">¥29,700</strong><small>(税込)</small></span><br>
+            <span class="perk-note" id="perkNote">チラシをお持ちの方限定の割引です。このチラシからのご予約は10%OFFになります。<br>このまま予約すると自動で適用されます(コード入力は不要です)。<br>※2026年12月31日までのご予約が対象です(撮影日は2027年1月以降でも大丈夫です)。</span>
           </div>
 
           <!-- 割引クーポンコード(D-060)。コードの判定は必ずGAS側で行う(ここに有効なコードは書かない) -->
@@ -1458,7 +1458,8 @@
       if (coupon.baseAmount) box.textContent += ` ― 通常 ¥${yen(coupon.baseAmount)} から${coupon.label || '割引'}`;
       box.classList.remove('is-invalid');
       box.style.display = 'block';
-    } else if ((coupon && coupon.entered) || (!coupon && normalizeCouponInput(enteredCode))) {
+    } else if ((coupon && (coupon.entered || coupon.chirashiExpired)) || (!coupon && normalizeCouponInput(enteredCode))) {
+      // chirashiExpired: チラシ特典の期限(2026年12月末までのご予約)後。GASのやさしい案内文をそのまま出す
       box.textContent = (coupon && coupon.message) || invalidMsg;
       box.classList.add('is-invalid');
       box.style.display = 'block';
@@ -1499,6 +1500,13 @@
     fetch(`${GAS_WEB_APP_URL}?action=line-perks&lineIdToken=${encodeURIComponent(lineIdToken)}`)
       .then(r => r.json())
       .then(p => {
+        // 期限(2026年12月末までのご予約)を過ぎていたら、割引の代わりにやさしい案内だけを出す
+        if (p && p.chirashiExpired === true && p.message) {
+          document.getElementById('perkPrice').style.display = 'none';
+          document.getElementById('perkNote').textContent = p.message;
+          document.getElementById('chirashiPerk').style.display = 'block';
+          return;
+        }
         if (!p || p.chirashi !== true || !p.amount) return;
         document.getElementById('perkAmount').textContent = `¥${yen(p.amount)}`;
         if (p.baseAmount) document.getElementById('perkBase').textContent = `¥${yen(p.baseAmount)}`;
