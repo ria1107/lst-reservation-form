@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>友だちに紹介する | Leading Style Tokyo</title>
+<style>
+  :root { --navy: #0f1b2d; --navy2: #16263d; --gold: #c9a959; --gold-dim: rgba(201,169,89,.35); --paper: #ece9e1; --muted: #9aa3b0; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--navy); color: var(--paper); font-family: "Hiragino Mincho ProN", "Yu Mincho", serif;
+    display: flex; min-height: 100vh; align-items: center; justify-content: center; padding: 16px; }
+  .card { max-width: 420px; width: 100%; border: 1px solid var(--gold-dim); padding: 30px 20px; text-align: center; background: var(--navy2); }
+  .brand { font-size: 11px; letter-spacing: .3em; color: var(--gold); margin-bottom: 12px; }
+  h1 { font-size: 20px; color: var(--paper); font-weight: normal; letter-spacing: .1em; margin: 0 0 14px; }
+  p { font-size: 14px; line-height: 1.9; margin: 0; }
+  .note { font-size: 12px; color: var(--muted); margin-top: 14px; line-height: 1.8; }
+  .btn { display: block; width: 100%; margin-top: 14px; padding: 14px 16px; border-radius: 4px; text-decoration: none; font-weight: 700;
+    font-family: inherit; font-size: 15px; border: none; cursor: pointer; }
+  .btn-gold { background: var(--gold); color: var(--navy); }
+  .btn-line { background: #06C755; color: #fff; }
+  .btn-sub { background: transparent; color: var(--gold); border: 1px solid var(--gold-dim); }
+  .linkbox { margin-top: 16px; padding: 10px; border: 1px dashed var(--gold-dim); font-family: monospace; font-size: 12px; word-break: break-all; color: var(--paper); user-select: all; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="brand">LEADING STYLE TOKYO</div>
+  <h1 id="title">友だちに紹介する</h1>
+  <p id="msg">準備しています…</p>
+
+  <!-- LINEの友だちを選んで送る(shareTargetPicker が使えるときだけ表示) -->
+  <button id="pick" class="btn btn-gold hidden" type="button">LINEの友だちを選んで送る</button>
+
+  <!-- 使えないとき(LINEの外・古いLINEアプリ・設定前)の代わり: リンクのコピー / LINEの共有画面 -->
+  <div id="fallback" class="hidden">
+    <div id="linkbox" class="linkbox"></div>
+    <button id="copy" class="btn btn-gold" type="button">紹介リンクをコピー</button>
+    <a id="lineShare" class="btn btn-line" href="#">LINEで送る</a>
+    <div class="note">コピーしたリンクを、お友だちへのメッセージに貼り付けてお送りください。</div>
+  </div>
+
+  <button id="close" class="btn btn-sub hidden" type="button">トークに戻る</button>
+  <div class="note" id="perkNote">このリンクからご予約いただくと、自動であなたのご紹介になります。<br>ご紹介の方は、撮影当日のお渡しデータが2枚追加(10枚→12枚)になります。</div>
+</div>
+<script>
+  // ============================================================
+  // 紹介シェアページ(D-107改善 / 2026-10-26)
+  // 開き方: LINEの「紹介状況」の返信にある「友だちに紹介する」ボタン
+  //   → https://liff.line.me/2012156192-mIEOjHYR/share?code=<紹介コード>
+  // LINEの友だち選択画面(shareTargetPicker)を出し、撮影会の案内カード(Flexメッセージ)を本人の名前で送る。
+  // 紹介コードはURLから受け取るだけ(サーバーには何も送らない)。
+  //   → URLを書き換えても「別の人の紹介リンクを送る」ことしかできず、お店側の実害はない設計
+  // 【文面・写真・料金を変えたいとき】下の SHARE_* を直して main に push(Cloudflareが自動で本番化)
+  // ============================================================
+  const LIFF_ID = '2012156192-mIEOjHYR'; // 本番LIFF(index.html と同じ)
+  const SHARE_IMAGE = 'https://lst-reservation.f-3.jp/img/model-1.jpg'; // カードの写真(https・10MB以下)
+  const SHARE_PRICE = '¥33,000(税込)';
+  const SHARE_PERK = 'お渡しデータ2枚追加(10枚→12枚)';
+  const SHARE_ALT = 'プロフィール撮影会のご紹介(Leading Style Tokyo)'; // 通知・トーク一覧に出る文
+
+  const $ = id => document.getElementById(id);
+  const show = (id, on) => $(id).classList.toggle('hidden', !on);
+  const say = (title, text) => { $('title').textContent = title; $('msg').textContent = text; };
+
+  // 紹介コード: ?code=R…(LIFFの転送で liff.state の中に入っていることもあるので両方見る)
+  const qs = new URLSearchParams(location.search);
+  const rawCode = qs.get('code') || new URLSearchParams(String(qs.get('liff.state') || '').replace(/^[^?]*\?/, '')).get('code') || '';
+  const code = /^R[0-9A-Z]{4,12}$/.test(rawCode) ? rawCode : '';
+  const refUrl = code ? `https://liff.line.me/${LIFF_ID}?ref=${code}` : '';
+
+  // 送るカード(紺×金)。senderName があれば「○○さんからのご紹介です」を添える
+  function buildFlex(senderName) {
+    const t = (text, o) => Object.assign({ type: 'text', text, wrap: true }, o || {});
+    const row = (label, value) => ({ type: 'box', layout: 'baseline', spacing: 'md', contents: [
+      t(label, { size: 'xs', color: '#9aa3b0', flex: 3 }), t(value, { size: 'sm', color: '#ece9e1', flex: 7 }) ] });
+    const body = [
+      t('LEADING STYLE TOKYO', { size: 'xxs', color: '#c9a959', weight: 'bold' }),
+      t('プロフィール撮影会のご紹介', { size: 'lg', color: '#ffffff', weight: 'bold', margin: 'md' }),
+      { type: 'separator', color: '#c9a959', margin: 'lg' },
+      { type: 'box', layout: 'vertical', spacing: 'sm', margin: 'lg', contents: [
+        row('料金', SHARE_PRICE), row('内容', 'プロのヘアメイク込み・撮影・データお渡し'), row('紹介特典', SHARE_PERK) ] },
+    ];
+    if (senderName) body.push(t(`${senderName}さんからのご紹介です`, { size: 'xs', color: '#c9a959', margin: 'lg' }));
+    return {
+      type: 'flex', altText: SHARE_ALT,
+      contents: {
+        type: 'bubble',
+        hero: { type: 'image', url: SHARE_IMAGE, size: 'full', aspectRatio: '3:4', aspectMode: 'cover', action: { type: 'uri', label: '詳しく見る', uri: refUrl } },
+        body: { type: 'box', layout: 'vertical', backgroundColor: '#0f1b2d', paddingAll: '20px', contents: body },
+        footer: { type: 'box', layout: 'vertical', backgroundColor: '#0f1b2d', paddingTop: '0px', contents: [
+          { type: 'button', style: 'primary', color: '#c9a959', height: 'md', action: { type: 'uri', label: '詳しく見る・予約する', uri: refUrl } },
+          t('このボタンからのご予約で紹介特典が付きます', { size: 'xxs', color: '#9aa3b0', align: 'center', margin: 'md' }) ] },
+      },
+    };
+  }
+
+  // LINEの友だち選択が使えないときの表示(コピー+LINEの共有画面)
+  function showFallback(text) {
+    say('友だちに紹介する', text || 'この画面では友だちを選んで送る機能が使えません。下のリンクをコピーしてお送りください。');
+    $('linkbox').textContent = refUrl;
+    const shareText = `プロフィール撮影会のご紹介\n${SHARE_PRICE}・ヘアメイク込み\nこのリンクからのご予約で${SHARE_PERK}\n${refUrl}`;
+    $('lineShare').href = 'https://line.me/R/share?text=' + encodeURIComponent(shareText);
+    show('pick', false);
+    show('fallback', true);
+  }
+
+  $('copy').addEventListener('click', () => {
+    const done = () => { $('copy').textContent = 'コピーしました'; setTimeout(() => { $('copy').textContent = '紹介リンクをコピー'; }, 2500); };
+    const legacy = () => { // 古いブラウザ用
+      const r = document.createRange(); r.selectNodeContents($('linkbox'));
+      const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+      try { document.execCommand('copy'); done(); } catch (e) { $('copy').textContent = 'リンクを長押ししてコピーしてください'; }
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(refUrl).then(done, legacy); else legacy();
+  });
+
+  let senderName = '';
+  function pick() {
+    $('pick').disabled = true;
+    liff.shareTargetPicker([buildFlex(senderName)], { isMultiple: true })
+      .then(res => {
+        $('pick').disabled = false;
+        if (res && res.status === 'success') {
+          say('お送りしました', 'ご紹介ありがとうございます。お友だちがカードのボタンからご予約されると、自動であなたのご紹介になります。');
+          $('pick').textContent = 'ほかの友だちにも送る';
+        } else {
+          say('送信をキャンセルしました', 'まだ送っていません。送るときは、下のボタンからもう一度お友だちを選んでください。');
+          $('pick').textContent = 'LINEの友だちを選んで送る';
+        }
+        show('pick', true);
+        show('close', liff.isInClient());
+      })
+      .catch(() => { $('pick').disabled = false; showFallback('友だちを選ぶ画面を開けませんでした。下のリンクをコピーしてお送りください。'); show('close', liff.isInClient()); });
+  }
+  $('pick').addEventListener('click', pick);
+  $('close').addEventListener('click', () => liff.closeWindow());
+
+  if (!code) {
+    say('友だちに紹介する', '紹介リンクが見つかりませんでした。公式LINEのトークで、メニューの「紹介状況」をもう一度押してください。');
+    show('perkNote', false);
+  } else {
+    // LIFF SDK を読み込む。読み込み失敗・LINEの外・古いアプリ・設定前は、コピー表示に切り替える(壊れない)
+    const s = document.createElement('script');
+    s.src = 'https://static.line-scdn.net/liff/edge/2/sdk.js';
+    s.onload = () => {
+      liff.init({ liffId: LIFF_ID }).then(() => {
+        if (!liff.isLoggedIn() || !liff.isApiAvailable('shareTargetPicker')) { showFallback(); show('close', liff.isInClient()); return; }
+        say('友だちに紹介する', '撮影会のご案内カードを、LINEの友だちに送ります。送る相手を選んでください。');
+        show('pick', true);
+        // 送り主の名前(取れなければ付けない)を取ってから、友だち選択を自動で1回開く
+        return liff.getProfile().then(p => { senderName = (p && p.displayName) || ''; }, () => {}).then(pick);
+      }).catch(() => showFallback());
+    };
+    s.onerror = () => showFallback();
+    document.head.appendChild(s);
+  }
+</script>
+</body>
+</html>
