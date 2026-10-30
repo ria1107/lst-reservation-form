@@ -55,7 +55,6 @@
   // 【文面・写真・料金を変えたいとき】下の SHARE_* を直して main に push(Cloudflareが自動で本番化)
   // ============================================================
   const LIFF_ID = '2012156192-mIEOjHYR'; // 本番LIFF(index.html と同じ)
-  const SHARE_IMAGE = 'https://lst-reservation.f-3.jp/img/model-1.jpg'; // カードの写真(https・10MB以下)
   const SHARE_PRICE = '¥33,000(税込)';
   const SHARE_PERK = 'お渡しデータ2枚追加(10枚→12枚)';
   const SHARE_ALT = 'プロフィール撮影会のご紹介(Leading Style Tokyo)'; // 通知・トーク一覧に出る文
@@ -87,7 +86,6 @@
       type: 'flex', altText: SHARE_ALT,
       contents: {
         type: 'bubble',
-        hero: { type: 'image', url: SHARE_IMAGE, size: 'full', aspectRatio: '3:4', aspectMode: 'cover', action: { type: 'uri', label: '詳しく見る', uri: refUrl } },
         body: { type: 'box', layout: 'vertical', backgroundColor: '#0f1b2d', paddingAll: '20px', contents: body },
         footer: { type: 'box', layout: 'vertical', backgroundColor: '#0f1b2d', paddingTop: '0px', contents: [
           { type: 'button', style: 'primary', color: '#c9a959', height: 'md', action: { type: 'uri', label: '詳しく見る・予約する', uri: refUrl } },
