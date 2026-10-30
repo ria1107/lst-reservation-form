@@ -68,6 +68,8 @@
   const rawCode = qs.get('code') || new URLSearchParams(String(qs.get('liff.state') || '').replace(/^[^?]*\?/, '')).get('code') || '';
   const code = /^R[0-9A-Z]{4,12}$/.test(rawCode) ? rawCode : '';
   const refUrl = code ? `https://liff.line.me/${LIFF_ID}?ref=${code}` : '';
+  // 送り主の名前(LINEの表示名)をリンクに添える。予約フォームで「○○さん(紹介コード)」と表示するため(判定はコードで行う)
+  const refUrlWith = name => (refUrl && name) ? `${refUrl}&rn=${encodeURIComponent(String(name).slice(0, 30))}` : refUrl;
 
   // 送るカード(紺×金)。senderName があれば「○○さんからのご紹介です」を添える
   function buildFlex(senderName) {
@@ -88,7 +90,7 @@
         type: 'bubble',
         body: { type: 'box', layout: 'vertical', backgroundColor: '#0f1b2d', paddingAll: '20px', contents: body },
         footer: { type: 'box', layout: 'vertical', backgroundColor: '#0f1b2d', paddingTop: '0px', contents: [
-          { type: 'button', style: 'primary', color: '#c9a959', height: 'md', action: { type: 'uri', label: '詳しく見る・予約する', uri: refUrl } },
+          { type: 'button', style: 'primary', color: '#c9a959', height: 'md', action: { type: 'uri', label: '詳しく見る・予約する', uri: refUrlWith(senderName) } },
           t('このボタンからのご予約で紹介特典が付きます', { size: 'xxs', color: '#9aa3b0', align: 'center', margin: 'md' }) ] },
       },
     };

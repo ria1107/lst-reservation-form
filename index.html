@@ -1126,6 +1126,7 @@
             <div class="input-group" id="referrerNameGroup" style="display:none; margin-top:16px;">
               <span class="input-label">どなた様のご紹介ですか? <span class="required-badge">必須</span></span>
               <input type="text" name="referrerName" id="referrerName" placeholder="紹介者のお名前">
+              <input type="hidden" id="referrerCode" value="">
               <div class="error-message" id="referrerNameError">紹介者のお名前を入力してください。</div>
               <div class="referral-hint">ご紹介でお越しの方は、撮影当日にデータを2枚追加(10枚 → 12枚)してお渡しします。</div>
             </div>
@@ -1216,14 +1217,22 @@
     // 紹介リンク(?ref=コード)からの遷移: 「ご来店のきっかけ」を自動で「紹介」にし、紹介者名欄にコードを入力しておく
     // LINEの紹介リンク(https://liff.line.me/<LIFF ID>?ref=コード)で開いた直後は、?ref= が liff.state の中に入っているので、そこも見る(D-107)
     const qs = new URLSearchParams(window.location.search);
-    const refCode = qs.get('ref') || new URLSearchParams(String(qs.get('liff.state') || '').replace(/^[^?]*\?/, '')).get('ref');
+    const liffQs = new URLSearchParams(String(qs.get('liff.state') || '').replace(/^[^?]*\?/, ''));
+    const refCode = qs.get('ref') || liffQs.get('ref');
+    const refName = String(qs.get('rn') || liffQs.get('rn') || '').trim().slice(0, 30); // 紹介者の名前(紹介カードから来たとき)
     if (refCode) {
       const referralRadio = document.querySelector('input[name="referralSource"][value="紹介"]');
       if (referralRadio) referralRadio.checked = true;
       const referrerNameGroup = document.getElementById('referrerNameGroup');
       if (referrerNameGroup) referrerNameGroup.style.display = 'block';
       const referrerNameInput = document.getElementById('referrerName');
-      if (referrerNameInput) referrerNameInput.value = refCode;
+      // 画面には「○○さん(紹介コード)」と出し、送信時は紹介コードだけを送る(紹介者の判定はコードで行うため)
+      if (referrerNameInput) {
+        referrerNameInput.value = refName ? `${refName}さん(${refCode})` : `LINEの紹介リンク(${refCode})`;
+        referrerNameInput.readOnly = true;
+      }
+      const referrerCodeInput = document.getElementById('referrerCode');
+      if (referrerCodeInput) referrerCodeInput.value = refCode;
     }
 
     // クーポンリンク(?coupon=コード)からの遷移: クーポンコード欄に自動入力しておく(有効かどうかの判定はGAS側)
@@ -1566,6 +1575,9 @@
 
     const data = Object.fromEntries(new FormData(form).entries());
     if (data.honeypot) return; // スパムボット対策
+    // 紹介リンクから来たときは、表示用の「○○さん(コード)」ではなく紹介コードそのものを送る
+    const referrerCode = document.getElementById('referrerCode').value;
+    if (referrerCode && data.referralSource === '紹介') data.referrerName = referrerCode;
     // 振込名義カナ(D-068)は銀行振込のときだけ送る(カードのときは欄が無効なので送られない)
     if (data.paymentMethod === 'bank') { data.bankKana = normalizeBankKana(data.bankKana); lastBankKana = data.bankKana; } else { delete data.bankKana; }
 
