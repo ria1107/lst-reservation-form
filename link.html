@@ -50,7 +50,10 @@
       body: JSON.stringify({ action: 'line-link', linkCode: code, lineIdToken: liff.getIDToken() }),
     }).then(r => r.json()).then(res => {
       if (res.ok && (res.status === 'linked' || res.status === 'already')) {
-        say('ご登録ありがとうございます', 'ご予約とLINEの連携が完了しました。今後のご連絡やご質問はこのLINEで承ります。撮影の3日前・前日・当日の朝に、ご案内をお送りします。');
+        // paymentGuide(D-134): GASが決済リンク付きのお支払い案内をLINEで送れたとき true(古いGAS・振込・支払い済み・2回目は付かない)
+        say('ご登録ありがとうございます', 'ご予約とLINEの連携が完了しました。' +
+          (res.status === 'linked' && res.paymentGuide ? 'お支払いのご案内をLINEでお送りしましたので、トークからお支払いください。' : '') +
+          '今後のご連絡やご質問はこのLINEで承ります。撮影が近づいたら、ご案内をお送りします。');
         show('addFriend', false);
         show('close', liff.isInClient());
       } else if (res.ok && res.status === 'need-friend') {

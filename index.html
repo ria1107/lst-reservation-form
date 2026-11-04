@@ -712,6 +712,10 @@
       text-decoration: none; border-radius: 4px; font-weight: 700; letter-spacing: 0.05em;
     }
     .line-register small { display: block; margin-top: 10px; font-size: 12px; color: var(--muted); }
+    /* D-134: LINE登録をお礼の直後に置いたので、上下の余白を整える */
+    #completeView .line-register { margin: 24px auto 28px; }
+    .pay-noline-note { display: block; margin-top: 12px; font-size: 12px; color: var(--muted); }
+    .submit-wait-note { margin-top: 10px; font-size: 0.78em; color: #999; text-align: center; line-height: 1.7; }
 
     #loading { text-align: center; padding: 30px; color: #999; }
 
@@ -999,13 +1003,22 @@
       <div id="completeView">
         <div class="complete-icon">✓</div>
         <h2 class="form-title" id="completeTitle">ご予約ありがとうございます</h2>
-        <div class="complete-text" id="completeCardText">ご予約を承りました。確認メールをお送りしましたのでご確認ください。<br><br>撮影費用 <strong id="completeAmount">¥33,000(税込)</strong> は、事前のお支払いをお願いしております。<br>下のボタンからお支払いください(確認メールにも同じリンクを記載しています)。<br>追加データなどのオプション料金は、撮影当日に会場にて承ります。</div>
+        <div class="complete-text" id="completeLead">ご予約を承りました。確認メールをお送りしますのでご確認ください(届くまで数分かかる場合があります)。</div>
+        <!-- LINE登録のお願い(D-120)。D-134でお礼の直後(一番上)へ移動。GASが line.linkUrl(LINE外の予約)か line.addFriendUrl(LINE内だが未友だち)を返したときだけ出す -->
+        <div id="lineRegister" class="line-register" style="display:none;">
+          <h3>LINE登録のお願い</h3>
+          <p id="lineRegisterText">今後のご連絡・お支払いのご案内は、公式LINEでお送りしております。<br>お手数ですが、下のボタンから公式LINEにご登録ください。<br>ご予約と自動で結びつき、お支払いのご案内と、撮影が近づいたらご案内をLINEでお届けします。</p>
+          <a id="lineRegisterBtn" class="line-register-btn" href="#" rel="noopener">LINEで友だち登録する</a>
+          <small>確認メールにも同じリンクを記載しています</small>
+        </div>
+        <!-- お支払いの案内(D-134)。LINE登録できる人には「LINEでご案内」、それ以外(旧GAS・LINE停止中など)は従来どおりボタン -->
+        <div class="complete-text" id="completeCardText">撮影費用 <strong id="completeAmount">¥33,000(税込)</strong> は、事前のお支払いをお願いしております。<br><span id="payGuideText">下のボタンからお支払いください(確認メールにも同じリンクを記載しています)。</span><br>追加データなどのオプション料金は、撮影当日に会場にて承ります。<small id="payNoLineNote" class="pay-noline-note" style="display:none;">LINEをご利用でない方は、確認メールのリンクからお支払いください。</small></div>
         <div id="couponResult" class="complete-text coupon-result" style="display:none;"></div>
         <a id="payLink" class="payment-link" href="#" target="_blank" rel="noopener" style="display:none;">撮影費用のお支払いへ進む</a>
         <div id="payLinkFallback" class="complete-text" style="display:none; margin-top:20px;">お支払い方法は、担当より別途メールにてご案内いたします。</div>
         <!-- 銀行振込を選んだ方の完了画面(D-064)。中身は送信後にGASから返った値で埋める -->
         <div id="bankComplete" style="display:none;">
-          <div class="complete-text">仮予約を承りました(仮受付)。確認メールをお送りしましたのでご確認ください。<br><strong>ご入金確認後に予約確定となります。</strong><br>下記の期限までにお振込みをお願いいたします。</div>
+          <div class="complete-text"><strong>ご入金確認後に予約確定となります。</strong><br>下記の期限までにお振込みをお願いいたします。</div>
           <div class="bank-info">
             <h3>お振込のご案内</h3>
             <dl>
@@ -1019,13 +1032,6 @@
               ※追加データなどのオプション料金は、撮影当日に会場にて承ります。
             </div>
           </div>
-        </div>
-        <!-- LINE登録のお願い(D-120)。GASが line.linkUrl(LINE外の予約)か line.addFriendUrl(LINE内だが未友だち)を返したときだけ出す -->
-        <div id="lineRegister" class="line-register" style="display:none;">
-          <h3>LINE登録のお願い</h3>
-          <p id="lineRegisterText">今後のご連絡やご質問への回答は、公式LINEで行っております。<br>お手数ですが、下のボタンから公式LINEにご登録ください。<br>ご予約と自動で結びつき、撮影の3日前・前日・当日の朝にLINEでご案内をお届けします。</p>
-          <a id="lineRegisterBtn" class="line-register-btn" href="#" rel="noopener">LINEで友だち登録する</a>
-          <small>確認メールにも同じリンクを記載しています</small>
         </div>
         <!-- 予約確認ページ(D-121)。GASが manageUrl を返したときだけ出す -->
         <div id="manageBox" class="complete-text" style="display:none; margin-top:24px;">ご予約内容の確認・日程変更・キャンセルは<a id="manageLink" href="#" style="color:var(--gold);">こちらのページ</a>からできます(確認メールにも記載しています)。</div>
@@ -1168,12 +1174,13 @@
           </div>
 
           <div class="cancel-notice">
-            ※撮影費用 ¥33,000(税込)は事前のお支払いです(クーポンご利用の場合は割引後の金額となります)。クレジットカードの場合は予約確定後の画面と確認メールにてお支払い用リンク(Square)を、銀行振込の場合は振込先とお振込期限をご案内します。追加データ等のオプション料金は撮影当日のお支払いです。<br><br>
+            ※撮影費用 ¥33,000(税込)は事前のお支払いです(クーポンご利用の場合は割引後の金額となります)。クレジットカードの場合は公式LINE(ご登録後)と確認メールにてお支払い用リンク(Square)を、銀行振込の場合は振込先とお振込期限をご案内します。追加データ等のオプション料金は撮影当日のお支払いです。<br><br>
             ※撮影日3日前からのキャンセルにはキャンセル料を申し受けます。あらかじめご了承ください。<br>
             3日前:30%　2日前:50%　前日・当日:100%
           </div>
 
           <button type="submit" class="submit-btn" id="sBtn">この内容で予約を確定する</button>
+          <div class="submit-wait-note">※送信後、処理に10〜20秒ほどかかる場合があります。画面を閉じずにお待ちください。</div>
         </form>
       </div>
     </div>
@@ -1380,6 +1387,7 @@
   // 完了画面(銀行振込)。振込先などGASから返った文字は textContent で入れる(HTMLとして解釈させない)
   function showBankComplete(bt, coupon) {
     document.getElementById('completeTitle').textContent = '仮予約を承りました';
+    document.getElementById('completeLead').textContent = '仮予約を承りました(仮受付)。確認メールをお送りしますのでご確認ください(届くまで数分かかる場合があります)。';
     document.getElementById('completeCardText').style.display = 'none';
     document.getElementById('bankAmount').textContent = `¥${yen(bt.amount)}(税込)`;
     document.getElementById('bankDeadline').textContent = bt.deadline || '';
@@ -1484,7 +1492,9 @@
     const box = document.getElementById('couponResult');
     const invalidMsg = 'クーポンコードが確認できなかったため通常料金でご案内しています';
     if (coupon && coupon.applied) {
-      document.getElementById('completeAmount').textContent = `¥${yen(coupon.amount)}(税込)`;
+      // 0円(無料撮影コード)のときは完了画面の文面ごと差し替えていて金額欄が無い → 無いときは書かない(D-134で発見したエラー表示の修正)
+      const amountEl = document.getElementById('completeAmount');
+      if (amountEl) amountEl.textContent = `¥${yen(coupon.amount)}(税込)`;
       box.textContent = `${coupon.chirashi ? 'チラシ特典適用' : 'クーポン適用'}: ¥${yen(coupon.amount)}(税込)`;
       if (coupon.baseAmount) box.textContent += ` ― 通常 ¥${yen(coupon.baseAmount)} から${coupon.label || '割引'}`;
       box.classList.remove('is-invalid');
@@ -1549,20 +1559,37 @@
   // LINE登録のお願い(D-120)。リッチメニュー(LINEの中)から予約して友だち連携できた人には何も出さない
   // GASから来たURLは https の LINE のURLだけ受け付ける(念のため)
   function showLineRegister(line) {
-    if (!line) return; // 古いGASは line を返さない → 何も出さない
+    if (!line) return false; // 古いGASは line を返さない → 何も出さない
     const ok = u => typeof u === 'string' && /^https:\/\/(liff\.line\.me|line\.me)\//.test(u);
     const btn = document.getElementById('lineRegisterBtn');
     if (ok(line.linkUrl)) {
       btn.href = line.linkUrl;
     } else if (ok(line.addFriendUrl)) {
       btn.href = line.addFriendUrl;
-      document.getElementById('lineRegisterText').textContent = '今後のご連絡やご質問への回答は、公式LINEで行っております。友だち追加がまだのようですので、下のボタンからご登録ください。登録後、撮影日に合わせてLINEでご案内をお届けします。';
+      document.getElementById('lineRegisterText').textContent = '今後のご連絡・お支払いのご案内は、公式LINEでお送りしております。友だち追加がまだのようですので、下のボタンからご登録ください。登録後、お支払いのご案内と、撮影が近づいたらご案内をLINEでお届けします。';
       btn.textContent = 'LINEで友だち追加する';
       document.querySelector('#lineRegister small').style.display = 'none';
     } else {
-      return;
+      return false;
     }
     document.getElementById('lineRegister').style.display = 'block';
+    return true;
+  }
+
+  // カード払いの完了画面(D-134)。payUrl はGASが作ったSquareの決済リンク
+  function showCardPayment(payUrl, line, lineRegisterShown) {
+    const guide = document.getElementById('payGuideText');
+    const viaLine = !!(line && line.paymentGuide); // LINEの中で予約→予約確認LINEに決済リンクを送れた
+    if (viaLine || lineRegisterShown) {
+      guide.innerHTML = viaLine
+        ? '<strong>LINEでお支払いのご案内をお送りしました。</strong>LINEのトークからお支払いください。'
+        : '<strong>お支払いのご案内は、LINE登録後にLINEでお送りします。</strong>';
+      document.getElementById('payNoLineNote').style.display = 'block';
+      return;
+    }
+    const payLink = document.getElementById('payLink');
+    payLink.href = payUrl;
+    payLink.style.display = 'inline-block';
   }
 
   // 送信時に最大3秒だけLIFFの準備を待つ(待ちすぎて予約できない、を防ぐ)
@@ -1571,7 +1598,7 @@
   function handleFormSubmit(form) {
     if (!validateForm(form)) return;
     const sBtn = document.getElementById('sBtn');
-    sBtn.disabled = true; sBtn.innerText = "送信中...";
+    sBtn.disabled = true; sBtn.innerText = "送信中…(そのままお待ちください)";
 
     const data = Object.fromEntries(new FormData(form).entries());
     if (data.honeypot) return; // スパムボット対策
@@ -1596,22 +1623,27 @@
         if (!json.ok) throw new Error(json.error || '送信に失敗しました');
 
         // 無料撮影コード(紹介特典・D-107)で0円になったとき: 決済リンクは作られない。お支払い不要と表示
+        const lineRegisterShown = showLineRegister(json.line); // LINE登録のお願い(お礼の直後に表示)
+        if (json.free && lineRegisterShown) { // 0円の方にはお支払いの話をしない
+          document.getElementById('lineRegisterText').textContent = '今後のご連絡やご質問への回答は、公式LINEで行っております。お手数ですが、下のボタンから公式LINEにご登録ください。ご予約と自動で結びつき、撮影が近づいたらLINEでご案内をお届けします。';
+        }
         if (json.free) {
-          document.getElementById('completeCardText').innerHTML = 'ご予約を承りました。確認メールをお送りしましたのでご確認ください。<br><br>今回の撮影費用は<strong>無料撮影コードの適用により0円</strong>です。お支払いの手続きは不要です。<br>追加データなどのオプション料金は、撮影当日に会場にて承ります。';
+          document.getElementById('completeCardText').innerHTML = '今回の撮影費用は<strong>無料撮影コードの適用により0円</strong>です。お支払いの手続きは不要です。<br>追加データなどのオプション料金は、撮影当日に会場にて承ります。';
         // 銀行振込(GASが bankTransfer を返したときだけ。旧GASならカードの表示のまま)
         } else if (json.paymentMethod === 'bank' && json.bankTransfer) {
           showBankComplete(json.bankTransfer, json.coupon);
-        // Square事前決済リンク: 発行できていればボタン表示、なければ案内文に切り替え
+        // Square事前決済リンク(D-134): LINE登録できる人には完了画面にボタンを出さず「LINEでご案内」にする
+        //   ・LINEの中で予約して連携済み → 予約確認LINEに決済リンクを送った(line.paymentGuide)
+        //   ・LINE登録のお願い(連携URL/友だち追加)を出す人 → LINE登録後にLINEでご案内(確認メールにもリンクあり)
+        //   ・それ以外(旧GAS・LINE連携停止中・LINE送信失敗など) → 従来どおり「お支払いへ進む」ボタン
         } else if (json.paymentUrl) {
-          const payLink = document.getElementById('payLink');
-          payLink.href = json.paymentUrl;
-          payLink.style.display = 'inline-block';
+          showCardPayment(json.paymentUrl, json.line, lineRegisterShown);
         } else {
+          document.getElementById('completeCardText').style.display = 'none';
           document.getElementById('payLinkFallback').style.display = 'block';
         }
 
         showCouponResult(json.coupon, data.couponCode);
-        showLineRegister(json.line);
         if (typeof json.manageUrl === 'string' && /^https:\/\//.test(json.manageUrl)) {
           document.getElementById('manageLink').href = json.manageUrl;
           document.getElementById('manageBox').style.display = 'block';
