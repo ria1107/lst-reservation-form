@@ -1018,7 +1018,7 @@
         <div id="payLinkFallback" class="complete-text" style="display:none; margin-top:20px;">お支払い方法は、担当より別途メールにてご案内いたします。</div>
         <!-- 銀行振込を選んだ方の完了画面(D-064)。中身は送信後にGASから返った値で埋める -->
         <div id="bankComplete" style="display:none;">
-          <div class="complete-text"><strong>ご入金確認後に予約確定となります。</strong><br>下記の期限までにお振込みをお願いいたします。</div>
+          <div class="complete-text"><strong>ご入金確認後に予約確定となります。</strong><br>下記の期限までにお振込みをお願いいたします。<br><small style="color:var(--muted);">お振込先は、公式LINE(ご登録後)と確認メールでもご案内します。</small></div>
           <div class="bank-info">
             <h3>お振込のご案内</h3>
             <dl>
@@ -1628,7 +1628,7 @@
           document.getElementById('lineRegisterText').textContent = '今後のご連絡やご質問への回答は、公式LINEで行っております。お手数ですが、下のボタンから公式LINEにご登録ください。ご予約と自動で結びつき、撮影が近づいたらLINEでご案内をお届けします。';
         }
         if (json.paymentMethod === 'bank' && json.bankTransfer && lineRegisterShown) { // 振込の方へのLINEは「振込期限のご案内(振込先は確認メール)」(D-134 検品)
-          document.getElementById('lineRegisterText').textContent = '今後のご連絡やご質問への回答は、公式LINEで行っております。お手数ですが、下のボタンから公式LINEにご登録ください。ご予約と自動で結びつき、お振込期限のご案内(振込先は確認メールと下記に記載しています)と、撮影が近づいたらご案内をLINEでお届けします。';
+          document.getElementById('lineRegisterText').textContent = '今後のご連絡やご質問への回答は、公式LINEで行っております。お手数ですが、下のボタンから公式LINEにご登録ください。ご予約と自動で結びつき、お振込先・お振込金額・お振込期限のご案内(確認メールと下記にも記載しています)と、撮影が近づいたらご案内をLINEでお届けします。';
         }
         if (json.free) {
           document.getElementById('completeCardText').innerHTML = '今回の撮影費用は<strong>無料撮影コードの適用により0円</strong>です。お支払いの手続きは不要です。<br>追加データなどのオプション料金は、撮影当日に会場にて承ります。';

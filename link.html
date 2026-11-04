@@ -50,9 +50,9 @@
       body: JSON.stringify({ action: 'line-link', linkCode: code, lineIdToken: liff.getIDToken() }),
     }).then(r => r.json()).then(res => {
       if (res.ok && (res.status === 'linked' || res.status === 'already')) {
-        // paymentGuide(D-134): GASが決済リンク付きのお支払い案内をLINEで送れたとき true(古いGAS・振込・支払い済み・2回目は付かない)
+        // paymentGuide(D-134/D-134b): GASがお支払いの案内(カード=決済リンク/振込=振込先)をLINEで送れたとき true(古いGAS・支払い済み・2回目は付かない)
         say('ご登録ありがとうございます', 'ご予約とLINEの連携が完了しました。' +
-          (res.status === 'linked' && res.paymentGuide ? 'お支払いのご案内をLINEでお送りしましたので、トークからお支払いください。' : '') +
+          (res.status === 'linked' && res.paymentGuide ? 'お支払いのご案内(カードの方は決済リンク、銀行振込の方はお振込先)をLINEでお送りしましたので、トークをご確認ください。' : '') +
           '今後のご連絡やご質問はこのLINEで承ります。撮影が近づいたら、ご案内をお送りします。');
         show('addFriend', false);
         show('close', liff.isInClient());
