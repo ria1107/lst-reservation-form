@@ -1627,6 +1627,9 @@
         if (json.free && lineRegisterShown) { // 0円の方にはお支払いの話をしない
           document.getElementById('lineRegisterText').textContent = '今後のご連絡やご質問への回答は、公式LINEで行っております。お手数ですが、下のボタンから公式LINEにご登録ください。ご予約と自動で結びつき、撮影が近づいたらLINEでご案内をお届けします。';
         }
+        if (json.paymentMethod === 'bank' && json.bankTransfer && lineRegisterShown) { // 振込の方へのLINEは「振込期限のご案内(振込先は確認メール)」(D-134 検品)
+          document.getElementById('lineRegisterText').textContent = '今後のご連絡やご質問への回答は、公式LINEで行っております。お手数ですが、下のボタンから公式LINEにご登録ください。ご予約と自動で結びつき、お振込期限のご案内(振込先は確認メールと下記に記載しています)と、撮影が近づいたらご案内をLINEでお届けします。';
+        }
         if (json.free) {
           document.getElementById('completeCardText').innerHTML = '今回の撮影費用は<strong>無料撮影コードの適用により0円</strong>です。お支払いの手続きは不要です。<br>追加データなどのオプション料金は、撮影当日に会場にて承ります。';
         // 銀行振込(GASが bankTransfer を返したときだけ。旧GASならカードの表示のまま)
